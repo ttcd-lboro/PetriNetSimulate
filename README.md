@@ -20,8 +20,8 @@ Then run 'exampleDummySimulationInitialiser.m' to simulate the data
     See 'additionalTools/buildMatricesFromExcel.m' for example on how an excel definition of the data is converted to tabular format
 
 3) Declare simulation parameters in the "Sim" structure - usually done within the initialiser script - see 'exampleInitialiser.m'
-    Example:
-        Sim.SimTitle = 'mySim1';
+    Example: <br>
+        Sim.SimTitle = 'mySim1'; <br>
         Sim.PhaseDurations = [3/60,1/60,1.7166,1/60,3/60]; % Duration of each phase specified in hours (if component failure data is also in hours)
         Sim.MaxNSims = 1.5e10; %  Number of missions to simulate
         Sim.MaxSimTimeHrs = 56; % max sim time in hours
