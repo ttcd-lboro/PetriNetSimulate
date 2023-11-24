@@ -1,9 +1,0 @@
-Assembling Global A-Matrix
-Global A-Matrix Completed
-Simulation running
-100 % of simulations were completed before time limit occurred
-There were 4742 mission failures and 45258 succcesses, after 50000 runs
-This corresponds to a failure rate of 9.484 %
-Across all simulations, there were a total of 9265 component failures
-[Warning: Exported image displays axes toolbar. To remove axes toolbar from image, export again.] 
-Failed in each phase the following number of times:    114  1122  3506

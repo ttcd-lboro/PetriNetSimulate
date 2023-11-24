@@ -14,7 +14,7 @@ if toc(runTime)<MaxSimTime
     if (opts.arbitraryFailureTimes)
         tInitialTransitions(1:Sim.NComponents) = 0.2*(1+rand(1,Sim.NComponents))/opts.failureRateMultiplier;
     else
-        tInitialTransitions(1:Sim.NComponents) = generateTimesToFailure(failDatTable,0)/opts.failureRateMultiplier; %
+        tInitialTransitions(1:Sim.NComponents) = GenerateTimesToFailure(failDatTable,0)/opts.failureRateMultiplier; %
     end
     
     tRemainTransitions = tInitialTransitions;

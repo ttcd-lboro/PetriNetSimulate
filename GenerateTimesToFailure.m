@@ -1,4 +1,4 @@
-function [ComponentTTF] = generateTimesToFailure(failDatTable,warn)
+function [ComponentTTF] = GenerateTimesToFailure(failDatTable,warn)
 nComponents=height(failDatTable);
 ComponentTTF = zeros(nComponents,1);
 for c=1:nComponents

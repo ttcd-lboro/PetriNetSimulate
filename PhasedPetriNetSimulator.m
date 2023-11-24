@@ -94,7 +94,10 @@ if opts.nProcs>1
 end
 
 warning off backtrace
-[~] = generateTimesToFailure(failDatTable,1); %prerun generate times to failure so warnings about components with no data are shown
+[~] = GenerateTimesToFailure(failDatTable,1); %prerun generate times to failure so warnings about components with no data are shown
+if opts.arbitraryFailureTimes
+    warning("'opts.arbitraryFailureTimes' is enabled - all failure times are random for this case")
+end
 warning on backtrace
 
 runTime = tic; % start timer
@@ -128,7 +131,7 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
             if (opts.arbitraryFailureTimes)
                 tInitialTransitions(1:Sim.NComponents) = 0.2*(1+rand(1,Sim.NComponents))/opts.failureRateMultiplier;
             else
-                tInitialTransitions(1:Sim.NComponents) = generateTimesToFailure(failDatTable,0)/opts.failureRateMultiplier; %
+                tInitialTransitions(1:Sim.NComponents) = GenerateTimesToFailure(failDatTable,0)/opts.failureRateMultiplier; %
             end
             
             tRemainTransitions = tInitialTransitions;

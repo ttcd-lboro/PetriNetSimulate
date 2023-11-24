@@ -1,6 +1,8 @@
 clearvars
 clc
-InputConnectivityMatName = 'InputConnectivity-exampleSim';
+addpath('..')
+
+InputConnectivityMatName = 'InputConnectivity-SimpleCase';
 NComponents = 3;
 
 %% Define failure times
@@ -56,10 +58,5 @@ end
 %% Save and Plot
 
 save(InputConnectivityMatName,'A','ASubnet','failDatTable','ComponentNetToPhaseNetIDs_allPhases')
-try 
-    plotAllNetsNoRun
-catch
-    addpath('additionalTools')
-    plotAllNetsNoRun
-end
+PlotAllNetsNoRun
 exportgraphics(gcf,[InputConnectivityMatName,'_phasePNs.png'])
