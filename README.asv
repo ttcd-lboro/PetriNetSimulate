@@ -1,8 +1,7 @@
 # PetriNetSimulate
 A parallelised MATLAB code for simulating petri nets for a phased mission. All components must be non-repairable but subnets of component families are allowed.
 The 'mission petri-net' is handled by a while loop but all component nets, and phase nets are combined into A-matrices for each phase (with consistent place and transition IDs between phases). This is the 'equation programming' method.
-All missions are programmed to be independent such that components reinitialise their failure times from the fialure data at the start of each simulation/mission.
-See help of 'PhasedPetriNetSimulator.m' for details on method
+All phases areSee help of 'PhasedPetriNetSimulator.m' for details on method
 
 To familiarise yourself with the code programming inputs, the simplest way to run your first simulation is to run 'additionalTools/exampleBuildMatricesFromExcel.m' to generate a .mat file of the place/transition connectivity and component failure data from excel input files. Then run 'exampleDummySimulationInitialiser.m' to simulate the data
 

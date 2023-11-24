@@ -14,8 +14,8 @@
 %"opts.debugNetByPlotting = true" statement, which shows how tokens move
 %through each net on a graph
 %
-%Connectivity between places is specified in 'A' matrices, and times to 
-%failure are generated from exponential/weibull/normal distributions. 
+%Connectivity between places is specified in 'A' matrices, and times to
+%failure are generated from exponential/weibull/normal distributions.
 %Data for these distributions is read in as stored as excel
 %spreadsheets which are read in using "buildMatr
 %
@@ -45,7 +45,7 @@
 
 %% Load Data
 % Define "Sim and opts structures in auxilliary file first (see exampleInitialiser.m)"
-load([Sim.ConnectivityMatName,'.mat'],'A','AHydraulicsSubnet','failDatTable','ComponentNetInputPlaces_allPhases','ComponentNetOutputPlaces_allPhases'); % read in A matrices for all phases with their associated (glboal) place and transition IDs.
+load([Sim.ConnectivityMatName,'.mat'],'A','ASubnet','failDatTable','ComponentNetInputPlaces_allPhases','ComponentNetOutputPlaces_allPhases'); % read in A matrices for all phases with their associated (glboal) place and transition IDs.
 
 %% Construct petri net and failure times
 Sim.fullSimName = [Sim.SimTitle,'.',char(datetime('now','Format','yy-MM-d_HH-mm'))];
@@ -54,22 +54,16 @@ Sim.NPhases = length(Sim.PhaseDurations);
 mkdir(Sim.fullSimName)
 diary([Sim.fullSimName,'/log.',Sim.fullSimName]); diary on
 rng('shuffle'); % Sets unique rand seed
-[AGlobal,AGlobalDims] = AssembleAGlobal(A,AHydraulicsSubnet,Sim.NComponents,Sim.NPhases);
+[AGlobal,AGlobalDims] = AssembleAGlobal(A,ASubnet,Sim.NComponents,Sim.NPhases);
 NGlobalTransitions = AGlobalDims(1);
 NGlobalPlaces = AGlobalDims(2);
 
 %% Initialise Simulation Variables
 MaxSimTime = Sim.MaxSimTimeHrs*60^2; % max sim time in seconds
 SysEndTime = sum(Sim.PhaseDurations);
-NMissionSuccess=0;
-NMissionFailures=0;
-PhaseFailureProbability = zeros(1,Sim.MaxNSims);
 PhaseFailures = zeros(1,Sim.NPhases);
-GlobalComponentFailedVec = zeros(NGlobalPlaces,1);
-FailedPlaceIndices = (Sim.NComponents+1:2*Sim.NComponents);
 MGlobal_0 = zeros(NGlobalPlaces,1); % Initalise the marking of the phase
 MGlobal_0(1:Sim.NComponents) = true;
-large_ = SysEndTime*1e5;
 small_ = SysEndTime/1e5;
 FailedComponents=zeros(Sim.NComponents,1);
 
@@ -88,13 +82,14 @@ if opts.nProcs>1
         end
     end
 end
-%delete(gcp('nocreate'))
-%poolobj = parpool(opts.nProcs);
+
 if opts.showProgressBar
     ppm = ParforProgressbar(Sim.MaxNSims,'progressBarUpdatePeriod',opts.progressBarUpdatePeriod,'title','Total Simulation Progress'); %
 end
 
+warning off backtrace
 [~] = generateTimesToFailure(failDatTable,1); %prerun generate times to failure so warnings about components with no data are shown
+warning on backtrace
 
 runTime = tic; % start timer
 disp('Simulation running')
@@ -123,7 +118,7 @@ parfor runNo = 1:(Sim.MaxNSims)
         else
             tInitialTransitions(1:Sim.NComponents) = generateTimesToFailure(failDatTable,0)/opts.failureRateMultiplier; %
         end
-                
+        
         %% Loop til failure/success
         while true % Loop until the break keyword
             %% Continue loop conditions:
@@ -205,7 +200,7 @@ parfor runNo = 1:(Sim.MaxNSims)
             InsertionVector(ComponentNetOutputPlaces_P) = MGlobal(ComponentNetInputPlaces_P); %
             MGlobal = MGlobal + InsertionVector.* AllowNetCopying; % Transfer tokens from component nets to phase net
             AllowNetCopying(InsertionVector~=0) = 0;  %After firing, reset insertion vector back to all zeros to prevent multiple tokens entering the phase PN from a single failed component net
-
+            
             if opts.debugNetByPlotting
                 disp(['Phase ', num2str(P),' is affected by the failure of the following componenents: '])
                 disp(ComponentNetInputPlaces_P');
@@ -275,7 +270,7 @@ end
 
 save([Sim.fullSimName,'/Results.',Sim.fullSimName,'.mat'],'Sim','SimOutcome','PhaseOfFailure','FailedComponents')
 save([Sim.fullSimName,'/AllResults.',Sim.fullSimName,'.mat'])
-save([Sim.fullSimName,'/Inputs.',Sim.fullSimName,'.mat'],'A','failDatTable','ComponentNetInputPlaces_allPhases','ComponentNetOutputPlaces_allPhases','AHydraulicsSubnet'); % read in A matrices for all phases with their associated (glboal) place and transition IDs.
+save([Sim.fullSimName,'/Inputs.',Sim.fullSimName,'.mat'],'A','failDatTable','ComponentNetInputPlaces_allPhases','ComponentNetOutputPlaces_allPhases','ASubnet'); % read in A matrices for all phases with their associated (glboal) place and transition IDs.
 
 %% Process results
 SimOutcome=SimOutcome(SimOutcome~=0);%0 means mission was skipped due to simulation time limit
@@ -285,9 +280,9 @@ NSuccesses = sum(SimOutcome==1);%1 means mission was successful
 NFailures = sum(SimOutcome==2);%2 means mission failed
 
 NComponentFailures = sum(FailedComponents);
-FailureProbability = NFailures/NSims;
+SysFailureProbability = NFailures/NSims;
 disp(['There were ',num2str(NFailures),' mission failures and ', num2str(NSuccesses),' succcesses, after ',num2str(NSims), ' runs']) % Print no times sys has failed
-disp(['This corresponds to a failure rate of ', num2str(NFailures/NSims*100),' %']) % Calculate failure probability
+disp(['This corresponds to a failure rate of ', num2str(SysFailureProbability*100),' %']) % Calculate failure probability
 disp('') % line break
 disp(['Across all simulations, there were a total of ',num2str(NComponentFailures),' component failures']) % Print no times sys has failed
 
@@ -310,7 +305,7 @@ ylim(yl)
 
 DevelopingFailureProbability = cumsum(SimOutcome==2)./(1:NSims)';
 FinalSysFailProbability = DevelopingFailureProbability(end);
-sep = round(NSims/1e4,0);
+sep = round(NSims/min(1e4,NSims),0);
 if NSims>1e5
     DevelopingFailureProbability = downsample(DevelopingFailureProbability,sep);
 end
@@ -370,8 +365,7 @@ save([Sim.fullSimName,'/Results.',Sim.fullSimName,'.mat'],'NSims','NFailures','N
 save([Sim.fullSimName,'/AllResults.',Sim.fullSimName,'.mat'])
 diary off
 
-
-function [AGlobal,AGlobalDims] = AssembleAGlobal(A,AHydraulicsSubnet,NComponents,NPhases)
+function [AGlobal,AGlobalDims] = AssembleAGlobal(A,ASubnet,NComponents,NPhases)
 
 disp("Assembling Global A-Matrix")
 
@@ -385,8 +379,8 @@ AGlobalZeros = zeros(AGlobalDims);
 
 A_Components_Local = [-eye(NComponents),eye(NComponents)]; % Create the A Matrix which links all components together
 
-AGlobalComponentsOnly = AGlobalZeros;
-AGlobalComponentsOnly((1:NComponents),(1:2*NComponents)) = A_Components_Local;
+AGlobalComponents = AGlobalZeros;
+AGlobalComponents((1:NComponents),(1:2*NComponents)) = A_Components_Local;
 
 %Put component A matrices into global format
 for k=1:NPhases
@@ -394,12 +388,12 @@ for k=1:NPhases
     AGlobal.A{k}(A.tIds{k},A.pIds{k}) = A.A{k};
 end
 
-AGlobalHydraulicsSubnet = AGlobalZeros;
-AGlobalHydraulicsSubnet(AHydraulicsSubnet.tIds,AHydraulicsSubnet.pIds) = AHydraulicsSubnet.A;
+AGlobalSubnet = AGlobalZeros;
+AGlobalSubnet(ASubnet.tIds,ASubnet.pIds) = ASubnet.A;
 
 % Add component subnets (auto-generated) and hydraulics subnets
 for k=1:NPhases
-    AGlobal.A{k} = AGlobal.A{k} + AGlobalComponentsOnly + AGlobalHydraulicsSubnet; %Put componenet failures into the global matrix
+    AGlobal.A{k} = AGlobal.A{k} + AGlobalComponents + AGlobalSubnet; %Put componenet failures into the global matrix
 end
 
 disp("Global A-Matrix Completed")
@@ -433,7 +427,7 @@ for c=1:nComponents
         if warn
             warning(['Component No. ',num2str(c),' has no failure data - assuming time to failure = 1e9 s'])
         end
-    
+        
     end
     
 end

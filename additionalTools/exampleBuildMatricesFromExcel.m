@@ -32,9 +32,9 @@ A.A{n} = readmatrix([dataPath,'/A-Phase-5.xlsx'],'Range','G3:AB20');
 A.pIds{n} = readmatrix([dataPath,'/A-Phase-5.xlsx'],'Range','G2:AB2');
 A.tIds{n} = readmatrix([dataPath,'/A-Phase-5.xlsx'],'Range','F3:F20');
 
-AHydraulicsSubnet.A = readmatrix([dataPath,'/A-HydraulicsSubnets.xlsx'],'Range','G3:R10');
-AHydraulicsSubnet.pIds = readmatrix([dataPath,'/A-HydraulicsSubnets.xlsx'],'Range','G2:R2');
-AHydraulicsSubnet.tIds = readmatrix([dataPath,'/A-HydraulicsSubnets.xlsx'],'Range','F3:F10');
+ASubnet.A = readmatrix([dataPath,'/A-Subnets.xlsx'],'Range','G3:R10');
+ASubnet.pIds = readmatrix([dataPath,'/A-Subnets.xlsx'],'Range','G2:R2');
+ASubnet.tIds = readmatrix([dataPath,'/A-Subnets.xlsx'],'Range','F3:F10');
 
 
 ComponentNetOutputPlaces_allPhases{1} = readmatrix([dataPath,'/A-Phase-1.xlsx'],'Range','Z2:Z100');
@@ -52,8 +52,8 @@ ComponentNetInputPlaces_allPhases{4} = readmatrix([dataPath,'/A-Phase-4.xlsx'],'
 ComponentNetOutputPlaces_allPhases{5} = readmatrix([dataPath,'/A-Phase-5.xlsx'],'Range','AJ2:AJ100');
 ComponentNetInputPlaces_allPhases{5} = readmatrix([dataPath,'/A-Phase-5.xlsx'],'Range','AI2:AI100');
 
-SubnetOutputNetPlaceNos = readmatrix([dataPath,'/A-HydraulicsSubnets.xlsx'],'Range','Z2:Z100');
-SubnetInputNetPlaceNos = readmatrix([dataPath,'/A-HydraulicsSubnets.xlsx'],'Range','Y2:Y100');
+SubnetOutputNetPlaceNos = readmatrix([dataPath,'/A-Subnets.xlsx'],'Range','Z2:Z100');
+SubnetInputNetPlaceNos = readmatrix([dataPath,'/A-Subnets.xlsx'],'Range','Y2:Y100');
 SubnetOutputNetPlaceNos = SubnetOutputNetPlaceNos(~isnan(SubnetOutputNetPlaceNos));
 SubnetInputNetPlaceNos = SubnetInputNetPlaceNos(~isnan(SubnetInputNetPlaceNos));
 
@@ -89,6 +89,6 @@ if nerrors>0
     error(['Checks complete - ', num2str(nerrors), ' errors found'])
 else
     disp('Checks complete - read in successful')
-    save([outMatTitle,'.mat'],'failDatTable','A','ComponentNetInputPlaces_allPhases','ComponentNetOutputPlaces_allPhases','AHydraulicsSubnet')
+    save([outMatTitle,'.mat'],'failDatTable','A','ComponentNetInputPlaces_allPhases','ComponentNetOutputPlaces_allPhases','ASubnet')
 end
 clearvars
