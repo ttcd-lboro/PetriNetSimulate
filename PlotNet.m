@@ -45,8 +45,8 @@ title(graphTitle)
 
 %% Label the Nodes
 Prefixes=[repmat('P', [ADims(2),1]);repmat('T', [ADims(1),1])];
-RealNodeNums = [pIds;tIds]';
-NLabels = string(strcat(Prefixes,num2str(RealNodeNums')));
+RealNodeNums = [pIds;tIds];
+NLabels = string(strcat(Prefixes,num2str(RealNodeNums)));
 
 labelnode(p1,1:sum(keepNodes),NLabels(keepNodes)) %Label all nodes
 LocalTransitionIndices = contains(NLabels(keepNodes),'T');
