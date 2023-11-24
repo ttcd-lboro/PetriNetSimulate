@@ -1,0 +1,4 @@
+1) First run the setupSimpleTestCase script to code up the petri nets and failure data for the test case and save it as a .mat file.
+The script also then plots the nets such that they can be checked 
+
+2) Now run the 'Initialiser' script - here called "Initialiser_SimpleCase" - which will 
