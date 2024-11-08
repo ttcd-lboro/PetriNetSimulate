@@ -97,8 +97,5 @@ else
 end
 
 %% Save and Plot
-
-%% Save and Plot
-
 PlotAllNetsNoRun
 exportgraphics(gcf,[InputConnectivityMatName,'_phasePNs.png'])
