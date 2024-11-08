@@ -95,3 +95,10 @@ else
     disp('Checks complete - read in successful')
     save([InputConnectivityMatName,'.mat'],'failDatTable','A','ComponentNetToPhaseNetIDs_allPhases','ComponentNetToPhaseNetIDs_allPhases','ASubnet')
 end
+
+%% Save and Plot
+
+%% Save and Plot
+
+PlotAllNetsNoRun
+exportgraphics(gcf,[InputConnectivityMatName,'_phasePNs.png'])
