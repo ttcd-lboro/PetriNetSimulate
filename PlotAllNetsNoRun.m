@@ -27,10 +27,12 @@ for P=1:length(A.A)
     PlotNet(A.A{P},A.pIds{P},A.tIds{P},['Phase ',num2str(P)],figNo);
 end
 
-if sum(contains(myMatFileVars,'ASubnet'))==1 &&~isempty(ASubnet)
-    load(myMatName,'ASubnet'); % read in A matrices for all phases with their associated (glboal) place and transition IDs.
-    nexttile 
-    PlotNet(ASubnet.A,ASubnet.pIds,ASubnet.tIds,'Subnet Petri Nets',figNo);
+if sum(contains(myMatFileVars,'ASubnet'))==1
+    if ~isempty(ASubnet)
+        load(myMatName,'ASubnet'); % read in A matrices for all phases with their associated (glboal) place and transition IDs.
+        nexttile 
+        PlotNet(ASubnet.A,ASubnet.pIds,ASubnet.tIds,'Subnet Petri Nets',figNo);
+   end
 end
 
 title(T1,'Phase Petri Nets')
