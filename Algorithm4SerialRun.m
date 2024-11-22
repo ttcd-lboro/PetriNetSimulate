@@ -77,7 +77,7 @@ if toc(runTime)<MaxSimTime
             T_Enabled(n) = all(MGlobal(InputInds)) && ~isequal(InputInds,zeros(1,length(InputInds))); % Mark transition as enabled after checking current marking of these places to see if all have a token, also excludes places that have no inputs
         end
         if isempty(T_Enabled)
-            error('No transitions enabled - this could be fine ')
+            error('No transitions enabled - this could be fine  - try removing this error message if you encounter an issue')
         end
         
         %% Get transitions to fire based on min time left and update times
