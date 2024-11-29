@@ -23,15 +23,18 @@ if toc(runTime)<MaxSimTime
     while true % Loop until the break keyword
         %% Continue loop conditions:
         PPrevious = P;
-        if MGlobal(PhaseFailedPlaceId)>0 %Check if token in system failed place then fail the mission
-            PhaseOfFailure(runNo) = P;
-            SimOutcome(runNo) = 2; % 2 means system failed
-            FailedComponents = FailedComponents + (MGlobal(1:Sim.NComponents)==0);
-            if opts.debugNetByPlotting
-                disp(['Sim ',num2str(runNo),': Phase failure registered in phase ',num2str(P)])
+        if P~=0  issue here
+            if MGlobal(A.pIds{P}==PhaseFailedPlaceId)>0 %Check if token in system failed place then fail the mission
+                PhaseOfFailure(runNo) = P;
+                SimOutcome(runNo) = 2; % 2 means system failed
+                FailedComponents = FailedComponents + (MGlobal(1:Sim.NComponents)==0);
+                if opts.debugNetByPlotting
+                   disp(['Sim ',num2str(runNo),': Phase failure registered in phase ',num2str(P)])
+                end
+                break
             end
-            break
-        elseif t_sys >= PhaseEndTime || P==0  % If time to move to next phase then switch phase and reinitialise all variables
+        end
+        if t_sys >= PhaseEndTime || P==0  % If time to move to next phase then switch phase and reinitialise all variables
             if opts.debugNetByPlotting && P~=0
                 disp(['t_sys>PhaseEndTime                  : ',num2str(t_sys),' > ',num2str(PhaseEndTime)])
             end

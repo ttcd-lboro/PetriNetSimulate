@@ -448,6 +448,7 @@ end
 
 disp("Global A-Matrix Completed")
 CompressAMatrices();
+AGlobalDims = size(AGlobal.A{1});
 
 function [] = CompressAMatrices()
     validTr_p = cell(size(AGlobal.A));
