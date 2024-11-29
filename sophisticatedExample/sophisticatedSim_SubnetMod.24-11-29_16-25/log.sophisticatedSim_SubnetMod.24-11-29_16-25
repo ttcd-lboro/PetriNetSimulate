@@ -1,0 +1,53 @@
+Assembling Global A-Matrix
+Global A-Matrix Completed
+[Warning: Component No. 32 has no failure data - assuming time to failure = 1e9 s] 
+[Warning: Component No. 35 has no failure data - assuming time to failure = 1e9 s] 
+[Warning: Component No. 38 has no failure data - assuming time to failure = 1e9 s] 
+[Warning: Component No. 39 has no failure data - assuming time to failure = 1e9 s] 
+[Warning: Component No. 40 has no failure data - assuming time to failure = 1e9 s] 
+[Warning: 'opts.arbitraryFailureTimes' is enabled - all failure times are random for this case] 
+Simulation running
+Simulation 10% complete
+Simulation 20% complete
+{Operation terminated by user during <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Algorithm4SerialRun')" style="font-weight:bold">Algorithm4SerialRun</a>
+
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('run', 'C:\Program Files\Matlab\R2022a\toolbox\matlab\lang\run.m', 91)" style="font-weight:bold">run</a> (<a href="matlab: opentoline('C:\Program Files\Matlab\R2022a\toolbox\matlab\lang\run.m',91,0)">line 91</a>)
+evalin('caller', strcat(script, ';'));
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('PhasedPetriNetSimulator', 'C:\Users\ttcd\Documents\MATLAB\PetriNetSimulate\PhasedPetriNetSimulator.m', 293)" style="font-weight:bold">PhasedPetriNetSimulator</a> (<a href="matlab: opentoline('C:\Users\ttcd\Documents\MATLAB\PetriNetSimulate\PhasedPetriNetSimulator.m',293,0)">line 293</a>)
+        run Algorithm4SerialRun % run the same algorithm as above - kept in seperate file for simplicity
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('run', 'C:\Program Files\Matlab\R2022a\toolbox\matlab\lang\run.m', 91)" style="font-weight:bold">run</a> (<a href="matlab: opentoline('C:\Program Files\Matlab\R2022a\toolbox\matlab\lang\run.m',91,0)">line 91</a>)
+evalin('caller', strcat(script, ';'));
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Initialiser_SimplifiedSimulation', 'C:\Users\ttcd\Documents\MATLAB\PetriNetSimulate\sophisticatedExample\Initialiser_SimplifiedSimulation.m', 25)" style="font-weight:bold">Initialiser_SimplifiedSimulation</a> (<a href="matlab: opentoline('C:\Users\ttcd\Documents\MATLAB\PetriNetSimulate\sophisticatedExample\Initialiser_SimplifiedSimulation.m',25,0)">line 25</a>)
+run PhasedPetriNetSimulator
+} 
+Initialiser_SimplifiedSimulation
+[Warning: Variable 'ASubnet' not found.] 
+[Warning: No subnets found. Assuming none present] 
+Assembling Global A-Matrix
+Global A-Matrix Completed
+[Warning: Component No. 32 has no failure data - assuming time to failure = 1e9 s] 
+[Warning: Component No. 35 has no failure data - assuming time to failure = 1e9 s] 
+[Warning: Component No. 38 has no failure data - assuming time to failure = 1e9 s] 
+[Warning: Component No. 39 has no failure data - assuming time to failure = 1e9 s] 
+[Warning: Component No. 40 has no failure data - assuming time to failure = 1e9 s] 
+[Warning: 'opts.arbitraryFailureTimes' is enabled - all failure times are random for this case] 
+Simulation running
+Simulation 10% complete
+Simulation 20% complete
+Simulation 30% complete
+Simulation 40% complete
+Simulation 50% complete
+Simulation 60% complete
+Simulation 70% complete
+Simulation 80% complete
+Simulation 90% complete
+Simulation 100% complete
+100 % of simulations were completed before time limit occurred
+There were 1000 mission failures and 0 succcesses, after 1000 runs
+This corresponds to a failure rate of 100 %
+Across all simulations, there were a total of 16911 component failures
+Failed in each phase the following number of times:    0     0  1000     0     0

@@ -4,7 +4,7 @@ clc
 addpath('../')
 
 %% Define simulation
-Sim.SimTitle = 'sophisticatedSim_quick';
+Sim.SimTitle = 'sophisticatedSim_SubnetMod';
 Sim.PhaseDurations = [3/60,1/60,1.7166,1/60,3/60]; % Duration of each phase specified in hours (if component failure data is also in hours)
 
 Sim.MaxNSims = 1e3;%  Number of missions to simulate

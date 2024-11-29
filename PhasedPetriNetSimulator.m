@@ -46,10 +46,10 @@
 %% Load Data
 % Define "Sim and opts structures in auxilliary file first (see exampleInitialiser.m)"
 warning off backtrace
-load([Sim.ConnectivityMatName,'.mat'],'A','ASubnet','failDatTable','ComponentNetToPhaseNetIDs_allPhases'); % read in A matrices for all phases with their associated (glboal) place and transition IDs.
-if ~exist('ASubnet','var')
+load([Sim.ConnectivityMatName,'.mat'],'A','ASubnets','failDatTable','ComponentNetToPhaseNetIDs_allPhases'); % read in A matrices for all phases with their associated (glboal) place and transition IDs.
+if ~exist('ASubnets','var')
     warning('No subnets found. Assuming none present')
-    ASubnet = [];
+    ASubnets = [];
 end
 warning on backtrace
 %% Construct petri net and failure times
@@ -64,7 +64,7 @@ end
 
 diary([Sim.fullSimName,'/log.',Sim.fullSimName]); diary on
 rng('shuffle'); % Sets unique rand seed
-[AGlobal,AGlobalDims] = AssembleAGlobal(A,ASubnet,Sim.NComponents,Sim.NPhases);
+[AGlobal,AGlobalDims] = AssembleAGlobal(A,ASubnets,Sim.NComponents,Sim.NPhases);
 NGlobalTransitions = AGlobalDims(1);
 NGlobalPlaces = AGlobalDims(2);
 
@@ -304,7 +304,7 @@ save([Sim.fullSimName,'/Results.',Sim.fullSimName,'.mat'],'Sim','SimOutcome','Ph
 if opts.saveAllVariables
     save([Sim.fullSimName,'/AllResults.',Sim.fullSimName,'.mat'])
 end
-save([Sim.fullSimName,'/Inputs.',Sim.fullSimName,'.mat'],'A','failDatTable','ComponentNetToPhaseNetIDs_allPhases','ASubnet'); % read in A matrices for all phases with their associated (glboal) place and transition IDs.
+save([Sim.fullSimName,'/Inputs.',Sim.fullSimName,'.mat'],'A','failDatTable','ComponentNetToPhaseNetIDs_allPhases','ASubnets'); % read in A matrices for all phases with their associated (glboal) place and transition IDs.
 
 %% Process results
 SimOutcome=SimOutcome(SimOutcome~=0);%0 means mission was skipped due to simulation time limit
@@ -407,7 +407,7 @@ end
 
 diary off
 
-function [AGlobal,AGlobalDims] = AssembleAGlobal(A,ASubnet,NComponents,NPhases)
+function [AGlobal,AGlobalDims] = AssembleAGlobal(A,ASubnets,NComponents,NPhases)
 
 disp("Assembling Global A-Matrix")
 
@@ -425,23 +425,24 @@ AGlobalComponents = AGlobalZeros;
 AGlobalComponents((1:NComponents),(1:2*NComponents)) = A_Components_Local;
 
 %Put component A matrices into global format
-for k=1:NPhases
-    AGlobal.A{k} = AGlobalZeros;
-    AGlobal.A{k}(A.tIds{k},A.pIds{k}) = A.A{k};
+for P=1:NPhases
+    AGlobal.A{P} = AGlobalZeros;
+    AGlobal.A{P}(A.tIds{P},A.pIds{P}) = A.A{P};
 end
 
 % Add component subnets (auto-generated)
-for k=1:NPhases
-    AGlobal.A{k} = AGlobal.A{k} + AGlobalComponents; %Put componenet failures into the global matrix
+for P=1:NPhases
+    AGlobal.A{P} = AGlobal.A{P} + AGlobalComponents; %Put componenet failures into the global matrix
 end
 
 % Add subnets if present
-if ~isempty(ASubnet)
+if ~isempty(ASubnets)&&iscell(ASubnets.A)
     AGlobalSubnet = AGlobalZeros;
-    AGlobalSubnet(ASubnet.tIds,ASubnet.pIds) = ASubnet.A;
-    
-    for k=1:NPhases
-        AGlobal.A{k} = AGlobal.A{k} + AGlobalSubnet; %Put componenet failures into the global matrix
+    for SId=1:length(ASubnets.A)
+        AGlobalSubnet(ASubnets.tIds{SId},ASubnets.pIds{SId}) = ASubnets.A{SId};
+    end
+    for P=1:NPhases
+        AGlobal.A{P} = AGlobal.A{P} + AGlobalSubnet; %Put componenet failures into the global matrix
     end
 end
 
