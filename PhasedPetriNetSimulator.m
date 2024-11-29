@@ -447,5 +447,28 @@ if ~isempty(ASubnets)&&iscell(ASubnets.A)
 end
 
 disp("Global A-Matrix Completed")
+CompressAMatrices();
 
+function [] = CompressAMatrices()
+    validTr_p = cell(size(AGlobal.A));
+    validPl_p = cell(size(AGlobal.A));
+    validTr = false(size(AGlobal.A{1},1),1);
+    validPl = false(1,size(AGlobal.A{1},2));
+
+    for P=1:NPhases
+        validTr_p{P} = ~all(AGlobal.A{P} == 0, 2); %boolean giving all irrelevant transitions to current phase
+        validPl_p{P} = ~all(AGlobal.A{P} == 0, 1); %boolean giving all irrelevant places to current phase
+        
+        validTr = validTr|validTr_p{P};
+        validPl = validPl|validPl_p{P};
+    end
+    %validTr = cellfun(@any,invalidTr_p);
+    for P=1:NPhases
+        AGlobal.A{P} = AGlobal.A{P}(validTr,validPl);
+    end
+    AGlobal.tIds = AGlobal.tIds(validTr');
+    AGlobal.pIds = AGlobal.pIds(validPl);
+    disp("Global A-Matrix Compressed")
 end
+end
+
