@@ -163,16 +163,23 @@ else
     SimOutcome(runNo) = 0;
 end
 
-function IND = ID2Ind(ID, AGlobal)
+function IND = ID2Ind(ID, AGlobal,Sim)
 % Find where ID values match in AGlobal.pRealIds
 IND = ID;
-for n=1:length(ID)
-    IND(n) = find(AGlobal.pRealIds==ID(n));
+if Sim.compressAMatrices
+    for n=1:length(ID)
+        IND(n) = AGlobal.pIds(find(AGlobal.pRealIds==ID(n)));
+    end
 end
 end
 
 % Function for Ind2ID
-function ID = Ind2ID(IND, AGlobal)
+function ID = Ind2ID(IND, AGlobal,Sim)
 % Find where IND values match in AGlobal.pIds
-ID = AGlobal.pRealIds(ismember(AGlobal.pIds, IND));
+ID = IND;
+if Sim.compressAMatrices
+    for n=1:length(ID)
+        ID(n) = AGlobal.pRealIds(find(AGlobal.pIds==IND(n)));
+    end
+end
 end

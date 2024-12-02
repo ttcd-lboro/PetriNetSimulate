@@ -64,7 +64,7 @@ end
 
 diary([Sim.fullSimName,'/log.',Sim.fullSimName]); diary on
 rng('shuffle'); % Sets unique rand seed
-[AGlobal,AGlobalDims] = AssembleAGlobal(A,ASubnets,Sim.NComponents,Sim.NPhases);
+[AGlobal,AGlobalDims] = AssembleAGlobal(A,ASubnets,Sim);
 NGlobalTransitions = AGlobalDims(1);
 NGlobalPlaces = AGlobalDims(2);
 
@@ -147,15 +147,18 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
             while true % Loop until the break keyword
                 %% Continue loop conditions:
                 PPrevious = P;
-                if MGlobal(PhaseFailedPlaceId)>0 %Check if token in system failed place then fail the mission
-                    PhaseOfFailure(runNo) = P;
-                    SimOutcome(runNo) = 2; % 2 means system failed
-                    FailedComponents = FailedComponents + (MGlobal(1:Sim.NComponents)==0);
-                    if opts.debugNetByPlotting
-                        disp(['Sim ',num2str(runNo),': Phase failure registered in phase ',num2str(P)])
+                if P~=0
+                    if MGlobal(PhaseFailedPlaceId)>0 %Check if token in system failed place then fail the mission
+                        PhaseOfFailure(runNo) = P;
+                        SimOutcome(runNo) = 2; % 2 means system failed
+                        FailedComponents = FailedComponents + (MGlobal(1:Sim.NComponents)==0);
+                        if opts.debugNetByPlotting
+                            disp(['Sim ',num2str(runNo),': Phase failure registered in phase ',num2str(P)])
+                        end
+                        break
                     end
-                    break
-                elseif t_sys >= PhaseEndTime || P==0  % If time to move to next phase then switch phase and reinitialise all variables
+                end
+                if t_sys >= PhaseEndTime || P==0  % If time to move to next phase then switch phase and reinitialise all variables
                     if opts.debugNetByPlotting && P~=0
                         disp(['t_sys>PhaseEndTime                  : ',num2str(t_sys),' > ',num2str(PhaseEndTime)])
                     end
@@ -174,7 +177,7 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
 
                         %Get phase failed place
                         NArcsLeavingEachPlace = sum(A.A{P}==-1,1); % List number of transitions leaving each place
-                        PhaseFailedPlaceId = A.pIds{P}(NArcsLeavingEachPlace == 0); % Phase failed place is place no transitions leaving it
+                        PhaseFailedPlaceId = ID2Ind(A.pIds{P}(NArcsLeavingEachPlace == 0),AGlobal,Sim); % Phase failed place is place no transitions leaving it
                         if length(PhaseFailedPlaceId)>1
                             error('Multiple phase fail places detected');
                         elseif isempty(PhaseFailedPlaceId)
@@ -186,9 +189,9 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
                         T_Enabled = false(NGlobalTransitions,1); % Gives logical index of which transitions are enabled
 
                         % Reinitialise insertion vector and component to main net links for this phase
-                        ComponentOutputIDs_P = real2compID(ComponentNetToPhaseNetIDs_allPhases{P}(:,1),AGlobal);
-                        PhaseNetInputIDs_P = real2compID(ComponentNetToPhaseNetIDs_allPhases{P}(:,2));
-
+                        ComponentOutputIDs_P = ID2Ind(ComponentNetToPhaseNetIDs_allPhases{P}(:,1),AGlobal,Sim);
+                        PhaseNetInputIDs_P = ID2Ind(ComponentNetToPhaseNetIDs_allPhases{P}(:,2),AGlobal,Sim);
+                        if any(size(ComponentOutputIDs_P)~= size(PhaseNetInputIDs_P)); error('No Match');end
                         AllowNetCopying = ones(NGlobalPlaces,1);%Vector of 1s until a componenet fails, then the value is made a 0 to prevent adding more tokens into the phase net every time its chekced
                         InsertionVector = false(NGlobalPlaces,1); %Initialise the insertion vector - a boolean vector which describes the links between component nets and phase net
 
@@ -206,7 +209,7 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
 
                 %% Get transitions to fire based on min time left and update times
                 if sum(T_Enabled)>0 % If any transitions are enabled //CD should be ~isempty(T_Enabled) - quicker
-                    dt = min(min(tRemainTransitions(T_Enabled)),(PhaseEndTime-t_sys+small_)); %also considers whether phase is about to end
+                    dt = min(min(tRemainTransitions(T_Enabled)),max((PhaseEndTime-t_sys+small_),small_)); %also considers whether phase is about to end
                 else
                     dt = 0;
                 end
@@ -417,10 +420,10 @@ end
 
 diary off
 
-function [AGlobal,AGlobalDims] = AssembleAGlobal(A,ASubnets,NComponents,NPhases)
+function [AGlobal,AGlobalDims] = AssembleAGlobal(A,ASubnets,Sim)
 
 disp("Assembling Global A-Matrix")
-
+NPhases = length(A.A);
 maxPId = max(cellfun(@max,A.pIds));
 maxTId = max(cellfun(@max,A.tIds));
 AGlobal.tIds = 1:maxTId;
@@ -429,10 +432,10 @@ AGlobal.pIds = 1:maxPId;
 AGlobalDims = [maxTId,maxPId];
 AGlobalZeros = zeros(AGlobalDims);
 
-A_Components_Local = [-eye(NComponents),eye(NComponents)]; % Create the A Matrix which links all components together
+A_Components_Local = [-eye(Sim.NComponents),eye(Sim.NComponents)]; % Create the A Matrix which links all components together
 
 AGlobalComponents = AGlobalZeros;
-AGlobalComponents((1:NComponents),(1:2*NComponents)) = A_Components_Local;
+AGlobalComponents((1:Sim.NComponents),(1:2*Sim.NComponents)) = A_Components_Local;
 
 %Put component A matrices into global format
 for P=1:NPhases
@@ -457,7 +460,8 @@ if ~isempty(ASubnets)&&iscell(ASubnets.A)
 end
 
 disp("Global A-Matrix Completed")
-CompressAMatrices();
+if Sim.compressAMatrices; CompressAMatrices(); end
+
 AGlobalDims = size(AGlobal.A{1});
 
     function [] = CompressAMatrices()
@@ -481,4 +485,24 @@ AGlobalDims = size(AGlobal.A{1});
         AGlobal.tCompOffset = AGlobal.tIds - AGlobal.tRealIds;
 
     end
+end
+function IND = ID2Ind(ID, AGlobal,Sim)
+% Find where ID values match in AGlobal.pRealIds
+IND = ID;
+if Sim.compressAMatrices
+    for n=1:length(ID)
+        IND(n) = AGlobal.pIds(find(AGlobal.pRealIds==ID(n)));
+    end
+end
+end
+
+% Function for Ind2ID
+function ID = Ind2ID(IND, AGlobal,Sim)
+% Find where IND values match in AGlobal.pIds
+ID = IND;
+if Sim.compressAMatrices
+    for n=1:length(ID)
+        ID(n) = AGlobal.pRealIds(find(AGlobal.pIds==IND(n)));
+    end
+end
 end

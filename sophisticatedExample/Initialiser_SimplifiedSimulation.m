@@ -12,13 +12,14 @@ Sim.MaxNSims = 5e3;%  Number of missions to simulate
 Sim.MaxSimTimeHrs = 0.2; % max sim time in hours
 Sim.NComponents = 40; % Number of all components in the system
 Sim.ConnectivityMatName = 'InputConnectivity-sophisticatedSim';
+Sim.compressAMatrices = true; % compress A-matrix to improve calculation speed - requires special handling of place IDs
 
 %% Set Options
-opts.nProcs = 1; % Number of computer processors to use for simulation
+opts.nProcs = 12; % Number of computer processors to use for simulation
 opts.debugNetByPlotting = false;
 opts.arbitraryFailureTimes = false; %doesnt read the failure times matrix - just uses random times to allow debugging
 opts.failureRateMultiplier = 1000;% increases rate of failures arbitrarily to allow quicker debugging
-opts.showProgressBar = false; % only works for parallel cases
+opts.showProgressBar = true; % only works for parallel cases
 opts.progressBarUpdatePeriod = 3; % progress monitor updates every 3 seconds (example)
 opts.saveAllVariables = false; % save every simulation variable at end of simulation - normally only relevant variables are saved
 
