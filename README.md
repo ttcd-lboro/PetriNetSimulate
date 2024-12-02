@@ -6,6 +6,13 @@ See help of 'PhasedPetriNetSimulator.m' for details on method
 
 To familiarise yourself with the code programming inputs, the simplest way to run your first simulation is to run 'additionalTools/exampleBuildMatricesFromExcel.m' to generate a .mat file of the place/transition connectivity and component failure data from excel input files. Then run 'exampleDummySimulationInitialiser.m' to simulate the data
 
+# Example use cases
+![InputConnectivity-sophisticatedSim_phasePNs](https://github.com/user-attachments/assets/dbee7493-7e7e-4ca1-a2f0-d9385a76e03b)
+Connectivity matrices plotted by the code
+![simConvergence](https://github.com/user-attachments/assets/80651a5f-5c43-4a73-b5f0-6c22bb30a4e9)
+Convergence of simulation plotting
+![QcomponentCausesFailure](https://github.com/user-attachments/assets/1d68d46d-1cbe-4d24-be6a-55e72bf74bd3)
+Graphical representation of components which fail most often
 # Steps to a custom initialisation:
 
 1) Build A-matrix for each phase petri net and store in the 'A' cell array (1 cell per phase) of InputConnectivity*.mat
