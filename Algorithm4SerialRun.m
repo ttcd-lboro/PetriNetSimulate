@@ -1,5 +1,5 @@
-    if toc(runTime)<MaxSimTime
-    
+if toc(runTime)<MaxSimTime
+
     %% Initialise sim
     P = 0 ; %Initial phase is phase 1
     MGlobal = MGlobal_0;
@@ -8,7 +8,7 @@
     ALeaving = sum(A.A{1}==-1); % List number of transitions leaving each place
     PhaseFailedPlaceId = A.pIds{1}(ALeaving == 0); % Phase failed place is place no transitions leaving it
     if length(PhaseFailedPlaceId)>1;error('Multiple phase fail places detected');end
-    
+
     % Get new component failure times
     tInitialTransitions = zeros(NGlobalTransitions,1);
     if (opts.arbitraryFailureTimes)
@@ -16,23 +16,20 @@
     else
         tInitialTransitions(1:Sim.NComponents) = GenerateTimesToFailure(failDatTable,0)/opts.failureRateMultiplier; %
     end
-    
+
     tRemainTransitions = tInitialTransitions;
-    
+
     %% Loop til failure/success
     while true % Loop until the break keyword
         %% Continue loop conditions:
         PPrevious = P;
         if P~=0
-            if (sum(MGlobal(41:end)>0))
-                disp('Somethign moved')
-            end
             if MGlobal(PhaseFailedPlaceId)>0 %Check if token in system failed place then fail the mission
                 PhaseOfFailure(runNo) = P;
                 SimOutcome(runNo) = 2; % 2 means system failed
                 FailedComponents = FailedComponents + (MGlobal(1:Sim.NComponents)==0);
                 if opts.debugNetByPlotting
-                   disp(['Sim ',num2str(runNo),': Phase failure registered in phase ',num2str(P)])
+                    disp(['Sim ',num2str(runNo),': Phase failure registered in phase ',num2str(P)])
                 end
                 break
             end
@@ -48,35 +45,35 @@
                 end
                 break
             else
-                
+
                 %% Reinitialise for new phase
                 P = P+1;
                 PhaseEndTime = PhaseEndTime+Sim.PhaseDurations(P); %increment the system time at which the phase ends
                 AGlobal_P = AGlobal.A{P};
-                
+
                 %Get phase failed place
                 NArcsLeavingEachPlace = sum(A.A{P}==-1,1); % List number of transitions leaving each place
-                PhaseFailedPlaceId = A.pIds{P}(NArcsLeavingEachPlace == 0); % Phase failed place is place no transitions leaving it
+                PhaseFailedPlaceId = ID2Ind(A.pIds{P}(NArcsLeavingEachPlace == 0),AGlobal); % Phase failed place is place no transitions leaving it
                 if length(PhaseFailedPlaceId)>1
                     error('Multiple phase fail places detected');
                 elseif isempty(PhaseFailedPlaceId)
                     error('Phase failed place was not found')
                 end
-                
-                % Reinitialise Transfer Variables               
+
+                % Reinitialise Transfer Variables
                 T_Fire = T_Fire_0;
                 T_Enabled = false(NGlobalTransitions,1); % Gives logical index of which transitions are enabled
-                
+
                 % Reinitialise insertion vector and component to main net links for this phase
-                ComponentOutputIDs_P = ComponentNetToPhaseNetIDs_allPhases{P}(:,1);
-                PhaseNetInputIDs_P = ComponentNetToPhaseNetIDs_allPhases{P}(:,2);
-                
+                ComponentOutputIDs_P = ID2Ind(ComponentNetToPhaseNetIDs_allPhases{P}(:,1),AGlobal);
+                PhaseNetInputIDs_P = ID2Ind(ComponentNetToPhaseNetIDs_allPhases{P}(:,2),AGlobal);
+                if any(size(ComponentOutputIDs_P)~= size(PhaseNetInputIDs_P)); error('No Match');end
                 AllowNetCopying = ones(NGlobalPlaces,1);%Vector of 1s until a componenet fails, then the value is made a 0 to prevent adding more tokens into the phase net every time its chekced
                 InsertionVector = false(NGlobalPlaces,1); %Initialise the insertion vector - a boolean vector which describes the links between component nets and phase net
-                  
+
             end
         end
-        
+
         %% Find all the enabled transitions.
         for n = 1 : NGlobalTransitions %loop through each transition
             InputInds = AGlobal_P(n,:)<0; %gives the indices of the input places to this transition (to check whether its enabled)
@@ -85,32 +82,32 @@
         if isempty(T_Enabled)
             error('No transitions enabled - this could be fine  - try removing this error message if you encounter an issue')
         end
-        
+
         %% Get transitions to fire based on min time left and update times
         if sum(T_Enabled)>0 % If any transitions are enabled //CD should be ~isempty(T_Enabled) - quicker
             dt = min(min(tRemainTransitions(T_Enabled)),max((PhaseEndTime-t_sys+small_),small_)); %also considers whether phase is about to end
         else
             dt = 0;
         end
-        
+
         T_Fire = T_Enabled.*(tRemainTransitions<=dt); % Fire just this/these transition(s)
-        
+
         %Update times
         tRemainTransitions = tRemainTransitions - dt.*T_Enabled; %Removes time past from all transitions that were enabled
         t_sys = t_sys + dt;
-        
+
         %% Fire transitions
         MGlobalPrevious = MGlobal; %Cache old MGlobal
         MGlobal = MGlobal + (AGlobal_P' * T_Fire); %FIRE all transitions!
         InsertionVector(PhaseNetInputIDs_P) = MGlobal(ComponentOutputIDs_P); %
         MGlobal = MGlobal + InsertionVector.* AllowNetCopying; % Transfer tokens from component nets to phase net
         AllowNetCopying(InsertionVector~=0) = 0;  %After firing, reset insertion vector back to all zeros to prevent multiple tokens entering the phase PN from a single failed component net
-        
+
         if opts.debugNetByPlotting
             disp(['Phase ', num2str(P),' is affected by the failure of the following componenents: '])
             disp(ComponentOutputIDs_P');
         end
-        
+
         placesWithTokenComponentNets = intersect(ComponentOutputIDs_P,find(MGlobalPrevious));
         if ~isempty(placesWithTokenComponentNets)
             placesWithTokenPhaseNets = MGlobal(placesWithTokenComponentNets);
@@ -124,9 +121,9 @@
             end
         elseif opts.debugNetByPlotting
             disp('However none of these contained a token on this pass')
-            
+
         end
-        
+
         %% Plot it - live
         if opts.debugNetByPlotting
             if P~=PPrevious %replot graph from scratch if its a new phase or hasnt been plotted yet
@@ -137,7 +134,7 @@
                 legend(h,'Empty place','Token','Disabled Transition','Enabled Transition','location','southoutside')
                 hold off
             end
-            
+
             % Highlight graph based on marking
             DefaultColours = p1.NodeColor;
             MarkedNodes = MGlobal(keepNodes(1:length(MGlobal)));
@@ -150,18 +147,32 @@
             else
                 title(['Simulation no: ',num2str(runNo),': phase no: ',num2str(P),'. The following places changed: ',num2str(num2str(FiredTransIndex))])
             end
-            
+
             % Pause, waiting for user to press any key to continue, then reset node colours after
             disp('Press any key to step through component failures and their effects: ')
             pause
-            
+
             if sum(MGlobal<0)>0
                 error(['Mistake in marking for node ,',num2str(find(MGlobal<0)), ' : reconsider code structure'])
             end
             p1.NodeColor = DefaultColours;
         end
-        
+
     end
 else
     SimOutcome(runNo) = 0;
+end
+
+function IND = ID2Ind(ID, AGlobal)
+% Find where ID values match in AGlobal.pRealIds
+IND = ID;
+for n=1:length(ID)
+    IND(n) = find(AGlobal.pRealIds==ID(n));
+end
+end
+
+% Function for Ind2ID
+function ID = Ind2ID(IND, AGlobal)
+% Find where IND values match in AGlobal.pIds
+ID = AGlobal.pRealIds(ismember(AGlobal.pIds, IND));
 end

@@ -1,6 +1,6 @@
 %% Phased mission petri net code
 %
-% V1: 2023-Nov-20th
+% V2: 2024-Dec-2nd
 % Chris Dunne MEng, MRes
 % PhD Student - CDT Future Propulsion and Power
 % Loughborough University
@@ -83,13 +83,20 @@ T_Fire_0 = false(NGlobalTransitions,1); % Define the zeroed version of the trans
 
 % Setup simulation for running in parallel
 if opts.nProcs>1
-    if ~exist('poolobj','var') || poolobj.NumWorkers ~= opts.nProcs
+    if ~exist('poolobj','var')
         try
-            poolobj = parpool(opts.nProcs);
+            poolobj = gcp();
         catch
-            delete(gcp('nocreate'))
-            poolobj = parpool(opts.nProcs);
+            try
+                poolobj = parpool(opts.nProcs);
+            catch
+                delete(gcp('nocreate'))
+                poolobj = parpool(opts.nProcs);
+            end
         end
+    elseif poolobj.NumWorkers ~= opts.nProcs
+        delete(gcp('nocreate'))
+        poolobj = parpool(opts.nProcs);
     end
 end
 
@@ -116,7 +123,7 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
     parfor runNo = 1:(Sim.MaxNSims)
         %%% ALGORITHM START %%%
         if toc(runTime)<MaxSimTime
-            
+
             %% Initialise sim
             P = 0 ; %Initial phase is phase 1
             MGlobal = MGlobal_0;
@@ -125,7 +132,7 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
             ALeaving = sum(A.A{1}==-1); % List number of transitions leaving each place
             PhaseFailedPlaceId = A.pIds{1}(ALeaving == 0); % Phase failed place is place no transitions leaving it
             if length(PhaseFailedPlaceId)>1;error('Multiple phase fail places detected');end
-            
+
             % Get new component failure times
             tInitialTransitions = zeros(NGlobalTransitions,1);
             if (opts.arbitraryFailureTimes)
@@ -133,9 +140,9 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
             else
                 tInitialTransitions(1:Sim.NComponents) = GenerateTimesToFailure(failDatTable,0)/opts.failureRateMultiplier; %
             end
-            
+
             tRemainTransitions = tInitialTransitions;
-            
+
             %% Loop til failure/success
             while true % Loop until the break keyword
                 %% Continue loop conditions:
@@ -159,12 +166,12 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
                         end
                         break
                     else
-                        
+
                         %% Reinitialise for new phase
                         P = P+1;
                         PhaseEndTime = PhaseEndTime+Sim.PhaseDurations(P); %increment the system time at which the phase ends
                         AGlobal_P = AGlobal.A{P};
-                        
+
                         %Get phase failed place
                         NArcsLeavingEachPlace = sum(A.A{P}==-1,1); % List number of transitions leaving each place
                         PhaseFailedPlaceId = A.pIds{P}(NArcsLeavingEachPlace == 0); % Phase failed place is place no transitions leaving it
@@ -173,21 +180,21 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
                         elseif isempty(PhaseFailedPlaceId)
                             error('Phase failed place was not found')
                         end
-                        
+
                         % Reinitialise Transfer Variables
                         T_Fire = T_Fire_0;
                         T_Enabled = false(NGlobalTransitions,1); % Gives logical index of which transitions are enabled
-                        
+
                         % Reinitialise insertion vector and component to main net links for this phase
-                        ComponentOutputIDs_P = ComponentNetToPhaseNetIDs_allPhases{P}(:,1);
-                        PhaseNetInputIDs_P = ComponentNetToPhaseNetIDs_allPhases{P}(:,2);
-                        
+                        ComponentOutputIDs_P = real2compID(ComponentNetToPhaseNetIDs_allPhases{P}(:,1),AGlobal);
+                        PhaseNetInputIDs_P = real2compID(ComponentNetToPhaseNetIDs_allPhases{P}(:,2));
+
                         AllowNetCopying = ones(NGlobalPlaces,1);%Vector of 1s until a componenet fails, then the value is made a 0 to prevent adding more tokens into the phase net every time its chekced
                         InsertionVector = false(NGlobalPlaces,1); %Initialise the insertion vector - a boolean vector which describes the links between component nets and phase net
-                        
+
                     end
                 end
-                
+
                 %% Find all the enabled transitions.
                 for n = 1 : NGlobalTransitions %loop through each transition
                     InputInds = AGlobal_P(n,:)<0; %gives the indices of the input places to this transition (to check whether its enabled)
@@ -196,32 +203,32 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
                 if isempty(T_Enabled)
                     error('No transitions enabled - this could be fine  - try removing this error message if you encounter an issue')
                 end
-                
+
                 %% Get transitions to fire based on min time left and update times
                 if sum(T_Enabled)>0 % If any transitions are enabled //CD should be ~isempty(T_Enabled) - quicker
                     dt = min(min(tRemainTransitions(T_Enabled)),(PhaseEndTime-t_sys+small_)); %also considers whether phase is about to end
                 else
                     dt = 0;
                 end
-                
+
                 T_Fire = T_Enabled.*(tRemainTransitions<=dt); % Fire just this/these transition(s)
-                
+
                 %Update times
                 tRemainTransitions = tRemainTransitions - dt.*T_Enabled; %Removes time past from all transitions that were enabled
                 t_sys = t_sys + dt;
-                
+
                 %% Fire transitions
                 MGlobalPrevious = MGlobal; %Cache old MGlobal
                 MGlobal = MGlobal + (AGlobal_P' * T_Fire); %FIRE all transitions!
                 InsertionVector(PhaseNetInputIDs_P) = MGlobal(ComponentOutputIDs_P); %
                 MGlobal = MGlobal + InsertionVector.* AllowNetCopying; % Transfer tokens from component nets to phase net
                 AllowNetCopying(InsertionVector~=0) = 0;  %After firing, reset insertion vector back to all zeros to prevent multiple tokens entering the phase PN from a single failed component net
-                
+
                 if opts.debugNetByPlotting
                     disp(['Phase ', num2str(P),' is affected by the failure of the following componenents: '])
                     disp(ComponentOutputIDs_P');
                 end
-                
+
                 placesWithTokenComponentNets = intersect(ComponentOutputIDs_P,find(MGlobalPrevious));
                 if ~isempty(placesWithTokenComponentNets)
                     placesWithTokenPhaseNets = MGlobal(placesWithTokenComponentNets);
@@ -235,9 +242,9 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
                     end
                 elseif opts.debugNetByPlotting
                     disp('However none of these contained a token on this pass')
-                    
+
                 end
-                
+
                 %% Plot it - live
                 if opts.debugNetByPlotting
                     if P~=PPrevious %replot graph from scratch if its a new phase or hasnt been plotted yet
@@ -248,7 +255,7 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
                         legend(h,'Empty place','Token','Disabled Transition','Enabled Transition','location','southoutside')
                         hold off
                     end
-                    
+
                     % Highlight graph based on marking
                     DefaultColours = p1.NodeColor;
                     MarkedNodes = MGlobal(keepNodes(1:length(MGlobal)));
@@ -261,37 +268,37 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
                     else
                         title(['Simulation no: ',num2str(runNo),': phase no: ',num2str(P),'. The following places changed: ',num2str(num2str(FiredTransIndex))])
                     end
-                    
+
                     % Pause, waiting for user to press any key to continue, then reset node colours after
                     disp('Press any key to step through component failures and their effects: ')
                     pause
-                    
+
                     if sum(MGlobal<0)>0
                         error(['Mistake in marking for node ,',num2str(find(MGlobal<0)), ' : reconsider code structure'])
                     end
                     p1.NodeColor = DefaultColours;
                 end
-                
+
             end
         else
             SimOutcome(runNo) = 0;
         end
-        
+
         %%% ALGORITHM END %%%
         if opts.showProgressBar
             ppm.increment();
         end
     end
-    
+
     if opts.showProgressBar
         delete(ppm);
     end
 else
     progCount = 0.1;
     for runNo = 1:(Sim.MaxNSims)
-        
+
         run Algorithm4SerialRun % run the same algorithm as above - kept in seperate file for simplicity
-        
+
         progress = mod(runNo/Sim.MaxNSims,0.05);
         if (runNo/Sim.MaxNSims)>(progCount)
             disp(['Simulation ',num2str(progCount*100),'% complete'])
@@ -341,64 +348,67 @@ exportgraphics(gcf,[Sim.fullSimName,'/QcomponentCausesFailure.png'])
 
 DevelopingFailureProbability = cumsum(SimOutcome==2)./(1:NSims)';
 FinalSysFailProbability = DevelopingFailureProbability(end);
+if (FinalSysFailProbability>0)
+    if NSims>1e5
+        sep = round(NSims/min(1e4,NSims),0);
+        DevelopingFailureProbability = downsample(DevelopingFailureProbability,sep);
+        DevelopingFailureProbability_Ind = 1:sep:NSims;
+    else
+        DevelopingFailureProbability_Ind = 1:NSims;
+    end
 
-if NSims>1e5
-    sep = round(NSims/min(1e4,NSims),0);
-    DevelopingFailureProbability = downsample(DevelopingFailureProbability,sep);
-    DevelopingFailureProbability_Ind = 1:sep:NSims;
+    figure
+    tl = tiledlayout(1,2,'TileSpacing','compact','padding','compact');
+    nexttile
+    semilogy(DevelopingFailureProbability_Ind,DevelopingFailureProbability)
+    xlim([0 NSims])
+    ylim([FinalSysFailProbability*10^(-0.1),FinalSysFailProbability*10^0.1])
+    title(tl,'Convergence')
+    xlabel('Iteration No')
+    ylabel('Overall System Failure Probability')
+    yline(FinalSysFailProbability,'k--')
+    yline(FinalSysFailProbability*1.05,'r--')
+    yline(FinalSysFailProbability*0.95,'r--')
+    legend('Prediction as Simulation Progressed','Final Value','5% Upper Confidence Bound','5% Lower Confidence Bound')
+    title('log scale')
+    grid on
+
+    nexttile
+    plot(DevelopingFailureProbability_Ind,DevelopingFailureProbability)
+    xlim([0 NSims])
+    ylim([FinalSysFailProbability*0.9,FinalSysFailProbability*1.1])
+
+    xlabel('Iteration No')
+    ylabel('Overall System Failure Probability')
+    yline(FinalSysFailProbability,'k--')
+    yline(FinalSysFailProbability*1.05,'r--')
+    yline(FinalSysFailProbability*0.95,'r--')
+    legend('Prediction as Simulation Progressed','Final Value','5% Upper Confidence Bound','5% Lower Confidence Bound')
+    title('linear scale')
+    grid on
+
+    title(tl,'Convergence of System Failure Probabily')
+    rsz = get(gcf,'Position');
+    rsz(3) = 2 * rsz(3);
+    set(gcf,'Position',rsz)
+    exportgraphics(gcf,[Sim.fullSimName,'/simConvergence.png'])
+
+    %% Phase of failure
+    for P=1:Sim.NPhases
+        PhaseFailures(P) = sum(PhaseOfFailure==P);
+    end
+    figure
+    bar(PhaseFailures/NSims)
+    xlabel('Phase')
+    ylabel(["Simulated probability system fails", "in each phase"])
+    disp(['Failed in each phase the following number of times:    ', num2str(PhaseFailures)])
+    set(gca,'yscale','log')
+    grid on
+    title('Simulated probability system fails in each phase')
+    exportgraphics(gcf,[Sim.fullSimName,'/QphaseFailure.png'])
 else
-    DevelopingFailureProbability_Ind = 1:NSims;
+    disp('No failures in entire simulation time. Convergence not plotted')
 end
-
-figure
-tl = tiledlayout(1,2,'TileSpacing','compact','padding','compact');
-nexttile
-semilogy(DevelopingFailureProbability_Ind,DevelopingFailureProbability)
-xlim([0 NSims])
-ylim([FinalSysFailProbability*10^(-0.1),FinalSysFailProbability*10^0.1])
-title(tl,'Convergence')
-xlabel('Iteration No')
-ylabel('Overall System Failure Probability')
-yline(FinalSysFailProbability,'k--')
-yline(FinalSysFailProbability*1.05,'r--')
-yline(FinalSysFailProbability*0.95,'r--')
-legend('Prediction as Simulation Progressed','Final Value','5% Upper Confidence Bound','5% Lower Confidence Bound')
-title('log scale')
-grid on
-
-nexttile
-plot(DevelopingFailureProbability_Ind,DevelopingFailureProbability)
-xlim([0 NSims])
-ylim([FinalSysFailProbability*0.9,FinalSysFailProbability*1.1])
-
-xlabel('Iteration No')
-ylabel('Overall System Failure Probability')
-yline(FinalSysFailProbability,'k--')
-yline(FinalSysFailProbability*1.05,'r--')
-yline(FinalSysFailProbability*0.95,'r--')
-legend('Prediction as Simulation Progressed','Final Value','5% Upper Confidence Bound','5% Lower Confidence Bound')
-title('linear scale')
-grid on
-
-title(tl,'Convergence of System Failure Probabily')
-rsz = get(gcf,'Position');
-rsz(3) = 2 * rsz(3);
-set(gcf,'Position',rsz)
-exportgraphics(gcf,[Sim.fullSimName,'/simConvergence.png'])
-
-%% Phase of failure
-for P=1:Sim.NPhases
-    PhaseFailures(P) = sum(PhaseOfFailure==P);
-end
-figure
-bar(PhaseFailures/NSims)
-xlabel('Phase')
-ylabel(["Simulated probability system fails", "in each phase"])
-disp(['Failed in each phase the following number of times:    ', num2str(PhaseFailures)])
-set(gca,'yscale','log')
-grid on
-title('Simulated probability system fails in each phase')
-exportgraphics(gcf,[Sim.fullSimName,'/QphaseFailure.png'])
 %% End
 save([Sim.fullSimName,'/Results.',Sim.fullSimName,'.mat'],'NSims','NFailures','NComponentFailures','PhaseFailures','FinalSysFailProbability','NComponentFailures','-append')
 if opts.saveAllVariables
@@ -451,29 +461,24 @@ CompressAMatrices();
 AGlobalDims = size(AGlobal.A{1});
 
     function [] = CompressAMatrices()
-    validTr_p = cell(size(AGlobal.A));
-    validPl_p = cell(size(AGlobal.A));
-    validTr = false(size(AGlobal.A{1},1),1);
-    validPl = false(1,size(AGlobal.A{1},2));
+        validTr = false(size(AGlobal.A{1},1),1);
+        validPl = false(1,size(AGlobal.A{1},2));
+        for Pq=1:NPhases
+            validTr = validTr|~all(AGlobal.A{Pq} == 0, 2); %boolean giving all irrelevant transitions to current phase
+            validPl = validPl|~all(AGlobal.A{Pq} == 0, 1); %boolean giving all irrelevant places to current phase
+        end
+        %validTr = cellfun(@any,invalidTr_p);
+        for Pq=1:NPhases
+            AGlobal.A{Pq} = AGlobal.A{Pq}(validTr,validPl);
+        end
+        AGlobal.tRealIds = AGlobal.tIds(validTr');
+        AGlobal.pRealIds = AGlobal.pIds(validPl);
+        AGlobal.tIds = 1:length(AGlobal.tRealIds);
+        AGlobal.pIds = 1:length(AGlobal.pRealIds);
+        disp("Global A-Matrix Compressed")
+        AGlobalDims = [length(AGlobal.tIds),length(AGlobal.pIds)];
+        AGlobal.pCompOffset = AGlobal.pIds - AGlobal.pRealIds;
+        AGlobal.tCompOffset = AGlobal.tIds - AGlobal.tRealIds;
 
-    for P=1:NPhases
-        validTr_p{P} = ~all(AGlobal.A{P} == 0, 2); %boolean giving all irrelevant transitions to current phase
-        validPl_p{P} = ~all(AGlobal.A{P} == 0, 1); %boolean giving all irrelevant places to current phase
-        
-        validTr = validTr|validTr_p{P};
-        validPl = validPl|validPl_p{P};
     end
-    %validTr = cellfun(@any,invalidTr_p);
-    for P=1:NPhases
-        AGlobal.A{P} = AGlobal.A{P}(validTr,validPl);
-    end
-    AGlobal.tRealIds = AGlobal.tIds(validTr');
-    AGlobal.pRealIds = AGlobal.pIds(validPl);
-    AGlobal.tIds = 1:length(AGlobal.tRealIds);
-    AGlobal.pIds = 1:length(AGlobal.pRealIds);
-    disp("Global A-Matrix Compressed")
-    AGlobalDims = [length(AGlobal.tIds),length(AGlobal.pIds)];
-
 end
-end
-

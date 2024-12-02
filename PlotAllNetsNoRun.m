@@ -1,6 +1,6 @@
 %% Inputs
 
-InputConnectivityMatName = 'InputConnectivity-sophisticatedSim';%define InputConnectivityMatName
+%InputConnectivityMatName = 'InputConnectivity-sophisticatedSim';%define InputConnectivityMatName
 
 %% Code: Do not modify %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 addpath('../')
