@@ -83,13 +83,20 @@ T_Fire_0 = false(NGlobalTransitions,1); % Define the zeroed version of the trans
 
 % Setup simulation for running in parallel
 if opts.nProcs>1
-    if ~exist('poolobj','var') || poolobj.NumWorkers ~= opts.nProcs
+    if ~exist('poolobj','var')
         try
-            poolobj = parpool(opts.nProcs);
+            poolobj = gcp();
         catch
-            delete(gcp('nocreate'))
-            poolobj = parpool(opts.nProcs);
+            try
+                poolobj = parpool(opts.nProcs);
+            catch
+                delete(gcp('nocreate'))
+                poolobj = parpool(opts.nProcs);
+            end
         end
+    elseif poolobj.NumWorkers ~= opts.nProcs
+        delete(gcp('nocreate'))
+        poolobj = parpool(opts.nProcs);
     end
 end
 
@@ -341,7 +348,7 @@ exportgraphics(gcf,[Sim.fullSimName,'/QcomponentCausesFailure.png'])
 
 DevelopingFailureProbability = cumsum(SimOutcome==2)./(1:NSims)';
 FinalSysFailProbability = DevelopingFailureProbability(end);
-
+if (FinalSysFailProbability>0)
 if NSims>1e5
     sep = round(NSims/min(1e4,NSims),0);
     DevelopingFailureProbability = downsample(DevelopingFailureProbability,sep);
@@ -399,6 +406,9 @@ set(gca,'yscale','log')
 grid on
 title('Simulated probability system fails in each phase')
 exportgraphics(gcf,[Sim.fullSimName,'/QphaseFailure.png'])
+else
+    disp('No failures in entire simulation time. Convergence not plotted')
+end
 %% End
 save([Sim.fullSimName,'/Results.',Sim.fullSimName,'.mat'],'NSims','NFailures','NComponentFailures','PhaseFailures','FinalSysFailProbability','NComponentFailures','-append')
 if opts.saveAllVariables
