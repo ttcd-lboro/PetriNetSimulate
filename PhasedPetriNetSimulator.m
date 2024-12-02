@@ -450,7 +450,7 @@ disp("Global A-Matrix Completed")
 CompressAMatrices();
 AGlobalDims = size(AGlobal.A{1});
 
-function [] = CompressAMatrices()
+    function [] = CompressAMatrices()
     validTr_p = cell(size(AGlobal.A));
     validPl_p = cell(size(AGlobal.A));
     validTr = false(size(AGlobal.A{1},1),1);
@@ -467,9 +467,13 @@ function [] = CompressAMatrices()
     for P=1:NPhases
         AGlobal.A{P} = AGlobal.A{P}(validTr,validPl);
     end
-    AGlobal.tIds = AGlobal.tIds(validTr');
-    AGlobal.pIds = AGlobal.pIds(validPl);
+    AGlobal.tRealIds = AGlobal.tIds(validTr');
+    AGlobal.pRealIds = AGlobal.pIds(validPl);
+    AGlobal.tIds = 1:length(AGlobal.tRealIds);
+    AGlobal.pIds = 1:length(AGlobal.pRealIds);
     disp("Global A-Matrix Compressed")
+    AGlobalDims = [length(AGlobal.tIds),length(AGlobal.pIds)];
+
 end
 end
 

@@ -1,4 +1,4 @@
-if toc(runTime)<MaxSimTime
+    if toc(runTime)<MaxSimTime
     
     %% Initialise sim
     P = 0 ; %Initial phase is phase 1
@@ -23,8 +23,11 @@ if toc(runTime)<MaxSimTime
     while true % Loop until the break keyword
         %% Continue loop conditions:
         PPrevious = P;
-        if P~=0  issue here
-            if MGlobal(A.pIds{P}==PhaseFailedPlaceId)>0 %Check if token in system failed place then fail the mission
+        if P~=0
+            if (sum(MGlobal(41:end)>0))
+                disp('Somethign moved')
+            end
+            if MGlobal(PhaseFailedPlaceId)>0 %Check if token in system failed place then fail the mission
                 PhaseOfFailure(runNo) = P;
                 SimOutcome(runNo) = 2; % 2 means system failed
                 FailedComponents = FailedComponents + (MGlobal(1:Sim.NComponents)==0);
@@ -85,7 +88,7 @@ if toc(runTime)<MaxSimTime
         
         %% Get transitions to fire based on min time left and update times
         if sum(T_Enabled)>0 % If any transitions are enabled //CD should be ~isempty(T_Enabled) - quicker
-            dt = min(min(tRemainTransitions(T_Enabled)),(PhaseEndTime-t_sys+small_)); %also considers whether phase is about to end
+            dt = min(min(tRemainTransitions(T_Enabled)),max((PhaseEndTime-t_sys+small_),small_)); %also considers whether phase is about to end
         else
             dt = 0;
         end
