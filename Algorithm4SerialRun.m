@@ -53,7 +53,7 @@ if toc(runTime)<MaxSimTime
 
                 %Get phase failed place
                 NArcsLeavingEachPlace = sum(A.A{P}==-1,1); % List number of transitions leaving each place
-                PhaseFailedPlaceId = ID2Ind(A.pIds{P}(NArcsLeavingEachPlace == 0),AGlobal); % Phase failed place is place no transitions leaving it
+                PhaseFailedPlaceId = ID2Ind(A.pIds{P}(NArcsLeavingEachPlace == 0),AGlobal,Sim); % Phase failed place is place no transitions leaving it
                 if length(PhaseFailedPlaceId)>1
                     error('Multiple phase fail places detected');
                 elseif isempty(PhaseFailedPlaceId)
@@ -65,8 +65,8 @@ if toc(runTime)<MaxSimTime
                 T_Enabled = false(NGlobalTransitions,1); % Gives logical index of which transitions are enabled
 
                 % Reinitialise insertion vector and component to main net links for this phase
-                ComponentOutputIDs_P = ID2Ind(ComponentNetToPhaseNetIDs_allPhases{P}(:,1),AGlobal);
-                PhaseNetInputIDs_P = ID2Ind(ComponentNetToPhaseNetIDs_allPhases{P}(:,2),AGlobal);
+                ComponentOutputIDs_P = ID2Ind(ComponentNetToPhaseNetIDs_allPhases{P}(:,1),AGlobal,Sim);
+                PhaseNetInputIDs_P = ID2Ind(ComponentNetToPhaseNetIDs_allPhases{P}(:,2),AGlobal,Sim);
                 if any(size(ComponentOutputIDs_P)~= size(PhaseNetInputIDs_P)); error('No Match');end
                 AllowNetCopying = ones(NGlobalPlaces,1);%Vector of 1s until a componenet fails, then the value is made a 0 to prevent adding more tokens into the phase net every time its chekced
                 InsertionVector = false(NGlobalPlaces,1); %Initialise the insertion vector - a boolean vector which describes the links between component nets and phase net
@@ -162,6 +162,7 @@ if toc(runTime)<MaxSimTime
 else
     SimOutcome(runNo) = 0;
 end
+
 
 function IND = ID2Ind(ID, AGlobal,Sim)
 % Find where ID values match in AGlobal.pRealIds

@@ -309,7 +309,8 @@ else
         end
     end
 end
-
+totalRunTime = toc(runTime);
+disp(['Total runTime: ',num2str(totalRunTime)])
 save([Sim.fullSimName,'/Results.',Sim.fullSimName,'.mat'],'Sim','SimOutcome','PhaseOfFailure','FailedComponents')
 if opts.saveAllVariables
     save([Sim.fullSimName,'/AllResults.',Sim.fullSimName,'.mat'])
