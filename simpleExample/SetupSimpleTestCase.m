@@ -38,7 +38,7 @@ A.tIds{2} = [5,6]; %look at A-matrix for phase 2 and insert transitions IDs
 A.A{2} = [0,-1,-1,1,0; -1,0,0,-1,1]; %A-matrix for phase 2
 
 %Phase 3
-A.pIds{3} = (19:22); %look at A-matrix for phase 3 and insert place IDs
+A.pIds{3} = [19,20,21,1000]; %look at A-matrix for phase 3 and insert place IDs
 A.tIds{3} = (7:9); %look at A-matrix for phase 3 and insert transitions IDs
 A.A{3} = [-1,0,0,1;0,-1,0,1;0,0,-1,1]; %A-matrix for phase 3
 
