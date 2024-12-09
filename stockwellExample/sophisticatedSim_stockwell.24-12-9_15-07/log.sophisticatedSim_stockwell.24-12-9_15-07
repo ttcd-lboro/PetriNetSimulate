@@ -1,0 +1,20 @@
+Assembling Global A-Matrix
+Global A-Matrix Completed
+Simulation running
+Note: progress bar only considers the time towards completing the maximum number of simulations
+Time shown by progress bar does not account for the maximum simulation time
+{Operation terminated by user during <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Algorithm4SerialRun')" style="font-weight:bold">Algorithm4SerialRun</a>
+
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('run', 'C:\Program Files\Matlab\R2022a\toolbox\matlab\lang\run.m', 91)" style="font-weight:bold">run</a> (<a href="matlab: opentoline('C:\Program Files\Matlab\R2022a\toolbox\matlab\lang\run.m',91,0)">line 91</a>)
+evalin('caller', strcat(script, ';'));
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('PhasedPetriNetSimulator', 'C:\Users\ttcd\Documents\MATLAB\PetriNetSimulate\PhasedPetriNetSimulator.m', 308)" style="font-weight:bold">PhasedPetriNetSimulator</a> (<a href="matlab: opentoline('C:\Users\ttcd\Documents\MATLAB\PetriNetSimulate\PhasedPetriNetSimulator.m',308,0)">line 308</a>)
+        run Algorithm4SerialRun % run the same algorithm as above - kept in seperate file for simplicity
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('run', 'C:\Program Files\Matlab\R2022a\toolbox\matlab\lang\run.m', 91)" style="font-weight:bold">run</a> (<a href="matlab: opentoline('C:\Program Files\Matlab\R2022a\toolbox\matlab\lang\run.m',91,0)">line 91</a>)
+evalin('caller', strcat(script, ';'));
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Initialiser_SimplifiedSimulation', 'C:\Users\ttcd\Documents\MATLAB\PetriNetSimulate\stockwellExample\Initialiser_SimplifiedSimulation.m', 26)" style="font-weight:bold">Initialiser_SimplifiedSimulation</a> (<a href="matlab: opentoline('C:\Users\ttcd\Documents\MATLAB\PetriNetSimulate\stockwellExample\Initialiser_SimplifiedSimulation.m',26,0)">line 26</a>)
+run PhasedPetriNetSimulator
+} 

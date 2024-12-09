@@ -111,8 +111,10 @@ if toc(runTime)<MaxSimTime
         placesWithTokenComponentNets = intersect(ComponentOutputIDs_P,find(MGlobalPrevious));
         if ~isempty(placesWithTokenComponentNets)
             placesWithTokenPhaseNets = MGlobal(placesWithTokenComponentNets);
-            if ~all(placesWithTokenPhaseNets)
-                error('Tokens were not copied from component nets to phase petri net after they failed - check component connectivity matrix')
+            if ~opts.allowLoneComponents
+                if ~all(placesWithTokenPhaseNets)
+                    error('Tokens were not copied from component nets to phase petri net after they failed - check component connectivity matrix')
+                end
             end
             if opts.debugNetByPlotting
                 disp('Of these, the following contained a token and had it transferred to the phase net:')

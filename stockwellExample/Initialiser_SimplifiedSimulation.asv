@@ -6,7 +6,7 @@ addpath('../')
 %% Define simulation
 Sim.SimTitle = 'sophisticatedSim_stockwell';
 %Sim.PhaseDurations = [1,1,1,1,1]; % Duration of each phase specified in hours (if component failure data is also in hours)
-Sim.PhaseDurations = [0.01,0.2,0.01,0.2]; % Duration of each phase specified in hours (if component failure data is also in hours)
+Sim.PhaseDurations = [1,1,1,1]; % Duration of each phase specified in hours (if component failure data is also in hours)
 
 Sim.MaxNSims = 5e3;%  Number of missions to simulate
 Sim.MaxSimTimeHrs = 0.2; % max sim time in hours

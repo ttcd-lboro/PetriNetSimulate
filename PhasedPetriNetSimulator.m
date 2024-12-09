@@ -17,7 +17,8 @@
 %Connectivity between places is specified in 'A' matrices, and times to
 %failure are generated from exponential/weibull/normal distributions.
 %Data for these distributions is read in as stored as excel
-%spreadsheets which are read in using "buildMatr
+%spreadsheets which are read in using the "assembleAGlobal" function at
+%the bottom of this script
 %
 %All other parameters are specifed at the start of this script
 %Assumes all components active (could fail) during any phase (but will not
@@ -43,6 +44,9 @@
 %Also allows for sunets which allow for additional repeated subnets to be
 %created and used in multiple phases
 
+%Currently assumes all components always on and able to fail in every phase
+%-need to modify how tTimeRemain is modified before firing to account for
+%cold standby components.
 %% Load Data
 % Define "Sim and opts structures in auxilliary file first (see exampleInitialiser.m)"
 warning off backtrace
@@ -235,8 +239,10 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
                 placesWithTokenComponentNets = intersect(ComponentOutputIDs_P,find(MGlobalPrevious));
                 if ~isempty(placesWithTokenComponentNets)
                     placesWithTokenPhaseNets = MGlobal(placesWithTokenComponentNets);
-                    if ~all(placesWithTokenPhaseNets)
+                    if ~opts.allowLoneComponents
+                        if ~all(placesWithTokenPhaseNets)
                         error('Tokens were not copied from component nets to phase petri net after they failed - check component connectivity matrix')
+                        end
                     end
                     if opts.debugNetByPlotting
                         disp('Of these, the following contained a token and had it transferred to the phase net:')
