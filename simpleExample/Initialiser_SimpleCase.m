@@ -11,7 +11,6 @@ Sim.MaxNSims = 1e5;%  Number of missions to simulate
 Sim.MaxSimTimeHrs = 10/60; % max sim time in hours 
 Sim.NComponents = 3; % Number of all components in the system
 Sim.ConnectivityMatName = 'InputConnectivity-SimpleCase';
-Sim.compressAMatrices = true; % compress A-matrix to improve calculation speed - requires special handling of place IDs
 
 %% Set Options
 opts.nProcs = 12; % Number of computer processors to use for simulation

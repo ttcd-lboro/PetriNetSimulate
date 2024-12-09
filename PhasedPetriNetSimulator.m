@@ -460,51 +460,7 @@ if ~isempty(ASubnets)&&iscell(ASubnets.A)
 end
 
 disp("Global A-Matrix Completed")
-if Sim.compressAMatrices
-    CompressAMatrices()
-end
 
 AGlobalDims = size(AGlobal.A{1});
 
-    function [] = CompressAMatrices()
-        validTr = false(size(AGlobal.A{1},1),1);
-        validPl = false(1,size(AGlobal.A{1},2));
-        for Pq=1:NPhases
-            validTr = validTr|~all(AGlobal.A{Pq} == 0, 2); %boolean giving all irrelevant transitions to current phase
-            validPl = validPl|~all(AGlobal.A{Pq} == 0, 1); %boolean giving all irrelevant places to current phase
-        end
-        %validTr = cellfun(@any,invalidTr_p);
-        for Pq=1:NPhases
-            AGlobal.A{Pq} = AGlobal.A{Pq}(validTr,validPl);
-        end
-        AGlobal.tRealIds = AGlobal.tIds(validTr');
-        AGlobal.pRealIds = AGlobal.pIds(validPl);
-        AGlobal.tIds = 1:length(AGlobal.tRealIds);
-        AGlobal.pIds = 1:length(AGlobal.pRealIds);
-        disp("Global A-Matrix Compressed")
-        AGlobalDims = [length(AGlobal.tIds),length(AGlobal.pIds)];
-        AGlobal.pCompOffset = AGlobal.pIds - AGlobal.pRealIds;
-        AGlobal.tCompOffset = AGlobal.tIds - AGlobal.tRealIds;
-
-    end
-end
-function IND = ID2Ind(ID, AGlobal,Sim)
-% Find where ID values match in AGlobal.pRealIds
-IND = ID;
-if Sim.compressAMatrices
-    for n=1:length(ID)
-        IND(n) = AGlobal.pIds(find(AGlobal.pRealIds==ID(n)));
-    end
-end
-end
-
-% Function for Ind2ID
-function ID = Ind2ID(IND, AGlobal,Sim)
-% Find where IND values match in AGlobal.pIds
-ID = IND;
-if Sim.compressAMatrices
-    for n=1:length(ID)
-        ID(n) = AGlobal.pRealIds(find(AGlobal.pIds==IND(n)));
-    end
-end
 end

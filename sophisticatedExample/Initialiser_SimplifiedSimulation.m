@@ -12,7 +12,6 @@ Sim.MaxNSims = 1;%  Number of missions to simulate
 Sim.MaxSimTimeHrs = 0.2; % max sim time in hours
 Sim.NComponents = 40; % Number of all components in the system
 Sim.ConnectivityMatName = 'InputConnectivity-sophisticatedSim';
-Sim.compressAMatrices = false; % compress A-matrix to improve calculation speed - requires special handling of place IDs
 
 %% Set Options
 opts.nProcs = 12; % Number of computer processors to use for simulation
@@ -25,12 +24,3 @@ opts.saveAllVariables = false; % save every simulation variable at end of simula
 
 %% Run code
 run PhasedPetriNetSimulator
-for n=1:length(A.A)
-    disp(['Phase ',num2str(n)])
-    disp('A:')
-disp(size(A.A{n}))
-disp('pIds:')
-disp((A.pIds{n}))
-disp('tIds:')
-disp((A.tIds{n}))
-end

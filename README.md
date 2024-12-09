@@ -1,7 +1,6 @@
-#VERSION 2.0 2024
+#VERSION 2.1 2024
 1) Subnets now easier to define: Separate import matrices
-2) Compressed A-Matrices, to allow any numbering convention without increasing cost due to matrix size increasing
-3) Improved handling of parallelisation
+2) Improved handling of parallelisation
 
 # PetriNetSimulate
 A parallelised MATLAB code for simulating petri nets for a phased mission. All components must be non-repairable but subnets of component families are allowed.

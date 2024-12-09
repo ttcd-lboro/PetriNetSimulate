@@ -15,7 +15,6 @@ Sim.MaxNSims = 1.5e10; %  Number of missions to simulate
 Sim.MaxSimTimeHrs = 56; % max sim time in hours
 Sim.NComponents = 40; % Number of all component subnets (where a subnet is the petri net for a given phase)
 Sim.ConnectivityMatName = 'InputConnectivity-sophisticatedSim'; % run 'additionalTools/exampleBuildMatricesFromExcel.m' first to generate an example
-Sim.compressAMatrices = true; % compress A-matrix to improve calculation speed - requires special handling of place IDs
 
 %% Set Options
 opts.nProcs = 1; % Number of computer processors to use for simulation
