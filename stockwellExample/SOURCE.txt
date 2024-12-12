@@ -1,1 +1,2 @@
 Stockwell, Kathryn S. (2013). Automatic phased mission system reliability model generation. Loughborough University. Thesis. https://hdl.handle.net/2134/13583
+Stockwell, K., Dunnett, S. Application of a Reliability Model Generator to a Pressure Tank System. Int. J. Autom. Comput. 10, 9–17 (2013). https://doi.org/10.1007/s11633-013-0691-3

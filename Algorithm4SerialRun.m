@@ -1,3 +1,4 @@
+%%% ALGORITHM START %%%
 if toc(runTime)<MaxSimTime
 
     %% Initialise sim
@@ -18,6 +19,11 @@ if toc(runTime)<MaxSimTime
     end
 
     tRemainTransitions = tInitialTransitions;
+    %cmpsFailedInPhase = zeros(Sim.NComponents,Sim.NPhases);
+    Mc = (MGlobal(1:Sim.NComponents)==0);
+    McPrev = Mc;
+    cmpsFailedInPhase = false(Sim.NComponents,Sim.NPhases);
+    TPhaseTotal = zeros(Sim.NPhases,1);
 
     %% Loop til failure/success
     while true % Loop until the break keyword
@@ -26,8 +32,17 @@ if toc(runTime)<MaxSimTime
         if P~=0
             if MGlobal(PhaseFailedPlaceId)>0 %Check if token in system failed place then fail the mission
                 PhaseOfFailure(runNo) = P;
+                TPhaseTotal(P) = t_sys-sum(Sim.PhaseDurations(1:P-1));
+                for pq = P-1:-1:1
+                    TPhaseTotal(pq) = Sim.PhaseDurations(pq);
+                end
+                TPhaseTotalStore = TPhaseTotalStore+ TPhaseTotal;
                 SimOutcome(runNo) = 2; % 2 means system failed
-                FailedComponents = FailedComponents + (MGlobal(1:Sim.NComponents)==0);
+                Mc = (MGlobal(1:Sim.NComponents)==0);
+                cmpsFailedInPhase(:,P) = Mc~=McPrev;
+
+                FailedComponents = FailedComponents + Mc;
+                NcmpPhaseFails = NcmpPhaseFails + cmpsFailedInPhase;
                 if opts.debugNetByPlotting
                     disp(['Sim ',num2str(runNo),': Phase failure registered in phase ',num2str(P)])
                 end
@@ -39,7 +54,17 @@ if toc(runTime)<MaxSimTime
                 disp(['t_sys>PhaseEndTime                  : ',num2str(t_sys),' > ',num2str(PhaseEndTime)])
             end
             if P==Sim.NPhases %all phases complete if phase time complete AND its the final phase
+                TPhaseTotal(P) = t_sys-sum(Sim.PhaseDurations(1:P-1)); % could instead use = sum(Sim.PhaseDurations) since all finished but this is discretisation accurate
+                for pq = P-1:-1:1
+                    TPhaseTotal(pq) = Sim.PhaseDurations(pq);
+                end
+                TPhaseTotalStore = TPhaseTotalStore + TPhaseTotal;
                 SimOutcome(runNo) = 1;
+                Mc = (MGlobal(1:Sim.NComponents)==0);
+                FailedComponents = FailedComponents + Mc;
+                cmpsFailedInPhase(:,P) = Mc~=McPrev;
+                NcmpPhaseFails = NcmpPhaseFails + cmpsFailedInPhase;
+
                 if opts.debugNetByPlotting
                     disp(['Sim ',num2str(runNo),': Mission complete without failure - final phase  time over '])
                 end
@@ -49,7 +74,8 @@ if toc(runTime)<MaxSimTime
                 %% Reinitialise for new phase
                 P = P+1;
                 PhaseEndTime = PhaseEndTime+Sim.PhaseDurations(P); %increment the system time at which the phase ends
-                AGlobal_P = AGlobal.A{P};
+
+                McPrev = Mc;
 
                 %Get phase failed place
                 NArcsLeavingEachPlace = sum(A.A{P}==-1,1); % List number of transitions leaving each place
@@ -61,6 +87,7 @@ if toc(runTime)<MaxSimTime
                 end
 
                 % Reinitialise Transfer Variables
+                AGlobal_P = AGlobal.A{P};
                 T_Fire = T_Fire_0;
                 T_Enabled = false(NGlobalTransitions,1); % Gives logical index of which transitions are enabled
 
@@ -164,3 +191,4 @@ if toc(runTime)<MaxSimTime
 else
     SimOutcome(runNo) = 0;
 end
+%%% ALGORITHM END %%%

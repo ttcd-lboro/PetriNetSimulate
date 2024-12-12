@@ -80,7 +80,12 @@ MGlobal_0 = zeros(NGlobalPlaces,1); % Initalise the marking of the phase
 MGlobal_0(1:Sim.NComponents) = true;
 small_ = SysEndTime/1e5;
 FailedComponents=zeros(Sim.NComponents,1);
+NcmpPhaseFails = zeros(Sim.NComponents,Sim.NPhases);
+TPhaseTotalStore = zeros(Sim.NPhases,1);
 
+%FailedComponents_phase=cell(1,Sim.NPhases);
+%[FailedComponents_phase{:}] = deal(zeros(Sim.NComponents,1));
+%zeros(Sim.NComponents,1);
 SimOutcome = zeros(Sim.MaxNSims,1,'int8');
 PhaseOfFailure = zeros(Sim.MaxNSims,1,'int8');
 T_Fire_0 = false(NGlobalTransitions,1); % Define the zeroed version of the transition firing matrix
@@ -146,6 +151,11 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
             end
 
             tRemainTransitions = tInitialTransitions;
+            %cmpsFailedInPhase = zeros(Sim.NComponents,Sim.NPhases);
+            Mc = (MGlobal(1:Sim.NComponents)==0);
+            McPrev = Mc;
+            cmpsFailedInPhase = false(Sim.NComponents,Sim.NPhases);
+            TPhaseTotal = zeros(Sim.NPhases,1);
 
             %% Loop til failure/success
             while true % Loop until the break keyword
@@ -154,8 +164,17 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
                 if P~=0
                     if MGlobal(PhaseFailedPlaceId)>0 %Check if token in system failed place then fail the mission
                         PhaseOfFailure(runNo) = P;
+                        TPhaseTotal(P) = t_sys-sum(Sim.PhaseDurations(1:P-1));
+                        for pq = P-1:-1:1
+                            TPhaseTotal(pq) = Sim.PhaseDurations(pq);
+                        end
+                        TPhaseTotalStore = TPhaseTotalStore+ TPhaseTotal;
                         SimOutcome(runNo) = 2; % 2 means system failed
-                        FailedComponents = FailedComponents + (MGlobal(1:Sim.NComponents)==0);
+                        Mc = (MGlobal(1:Sim.NComponents)==0);
+                        cmpsFailedInPhase(:,P) = Mc~=McPrev;
+
+                        FailedComponents = FailedComponents + Mc;
+                        NcmpPhaseFails = NcmpPhaseFails + cmpsFailedInPhase;
                         if opts.debugNetByPlotting
                             disp(['Sim ',num2str(runNo),': Phase failure registered in phase ',num2str(P)])
                         end
@@ -167,7 +186,17 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
                         disp(['t_sys>PhaseEndTime                  : ',num2str(t_sys),' > ',num2str(PhaseEndTime)])
                     end
                     if P==Sim.NPhases %all phases complete if phase time complete AND its the final phase
+                        TPhaseTotal(P) = t_sys-sum(Sim.PhaseDurations(1:P-1)); % could instead use = sum(Sim.PhaseDurations) since all finished but this is discretisation accurate
+                        for pq = P-1:-1:1
+                            TPhaseTotal(pq) = Sim.PhaseDurations(pq);
+                        end
+                        TPhaseTotalStore = TPhaseTotalStore + TPhaseTotal;
                         SimOutcome(runNo) = 1;
+                        Mc = (MGlobal(1:Sim.NComponents)==0);
+                        FailedComponents = FailedComponents + Mc;
+                        cmpsFailedInPhase(:,P) = Mc~=McPrev;
+                        NcmpPhaseFails = NcmpPhaseFails + cmpsFailedInPhase;
+
                         if opts.debugNetByPlotting
                             disp(['Sim ',num2str(runNo),': Mission complete without failure - final phase  time over '])
                         end
@@ -177,7 +206,8 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
                         %% Reinitialise for new phase
                         P = P+1;
                         PhaseEndTime = PhaseEndTime+Sim.PhaseDurations(P); %increment the system time at which the phase ends
-                        AGlobal_P = AGlobal.A{P};
+
+                        McPrev = Mc;
 
                         %Get phase failed place
                         NArcsLeavingEachPlace = sum(A.A{P}==-1,1); % List number of transitions leaving each place
@@ -189,6 +219,7 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
                         end
 
                         % Reinitialise Transfer Variables
+                        AGlobal_P = AGlobal.A{P};
                         T_Fire = T_Fire_0;
                         T_Enabled = false(NGlobalTransitions,1); % Gives logical index of which transitions are enabled
 
@@ -241,7 +272,7 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
                     placesWithTokenPhaseNets = MGlobal(placesWithTokenComponentNets);
                     if ~opts.allowLoneComponents
                         if ~all(placesWithTokenPhaseNets)
-                        error('Tokens were not copied from component nets to phase petri net after they failed - check component connectivity matrix')
+                            error('Tokens were not copied from component nets to phase petri net after they failed - check component connectivity matrix')
                         end
                     end
                     if opts.debugNetByPlotting
@@ -326,8 +357,8 @@ save([Sim.fullSimName,'/Inputs.',Sim.fullSimName,'.mat'],'A','failDatTable','Com
 SimOutcome=SimOutcome(SimOutcome~=0);%0 means mission was skipped due to simulation time limit
 NSims = length(SimOutcome); % remove all skipped simulations (due to time limit or early end)
 disp([num2str(NSims/Sim.MaxNSims*100),' % of simulations were completed before time limit occurred'])
-NSuccesses = sum(SimOutcome==1);%1 means mission was successful
-NFailures = sum(SimOutcome==2);%2 means mission failed
+NSuccesses = sum(SimOutcome==1);%1 mission successful
+NFailures = sum(SimOutcome==2);%2 mission failed
 
 NComponentFailures = sum(FailedComponents);
 SysFailureProbability = NFailures/NSims;
@@ -336,6 +367,53 @@ disp(['This corresponds to a failure rate of ', num2str(SysFailureProbability*10
 disp('') % line break
 disp(['Across all simulations, there were a total of ',num2str(NComponentFailures),' component failures']) % Print no times sys has failed
 
+%% Simulated Failure Rate of Components
+
+ComponentFailLikelihood= FailedComponents/NSims;
+cmpPhaseFailureRate = NcmpPhaseFails;
+for P=1:Sim.NPhases
+    NPhaseRuns(P) = NSuccesses + sum(PhaseOfFailure>=P);
+    if 0.05<abs(TPhaseTotalStore(P)/Sim.PhaseDurations(P)/NPhaseRuns(P)-1)
+        disp(['More than 5% differnce real phase duration from intended for phase ',num2str(P)...
+            ,'. This is due to high failure rates']);%,'. Phase times failed v rarely')
+        disp(['Intended phase duration: ',num2str(Sim.PhaseDurations(P)),'. Average simulated duration: ',num2str(TPhaseTotalStore(P)/NPhaseRuns(P))]);
+    end
+    cmpPhaseFailureRate(:,P) = NcmpPhaseFails(:,P)/TPhaseTotalStore(P);%*Sim.PhaseDurations(P);   %NPhaseRuns(P)*Sim.PhaseDurations(P);
+end
+SumCmpPhaseFailureRate = sum(cmpPhaseFailureRate.*Sim.PhaseDurations,2)./sum(Sim.PhaseDurations);
+Cmp = (1:Sim.NComponents)';
+MTTF = generateMTTF(failDatTable,0);
+cmpPhaseFailureRateTab = array2table([Cmp,1./MTTF,cmpPhaseFailureRate,SumCmpPhaseFailureRate],'VariableNames',["Cmp";"1/MTTF";strcat("Phase",num2str((1:Sim.NPhases)'));"Cmp Mission Unreliability"]);
+disp('Component failure rate in each phase:')
+disp(cmpPhaseFailureRateTab)
+
+%% Variance of Simulated Failure Rate of Components
+% Confidence Bounds (Chi-Squared Percentiles) assumes Chi-squared distribution.
+alpha = 0.05;% confidence interval value
+for P=1:Sim.NPhases
+    [cmpPhaseFailureRate_lb(:,P),cmpPhaseFailureRate_ub(:,P)] = calculateMTTFBounds(NcmpPhaseFails(:,P),TPhaseTotalStore(P),alpha,failDatTable);
+end
+cmpPhaseFailureRate_lb_rel = 100*cmpPhaseFailureRate_lb./cmpPhaseFailureRate-100;
+cmpPhaseFailureRate_ub_rel = 100*cmpPhaseFailureRate_ub./cmpPhaseFailureRate-100;
+cmpPhaseFailureRate_ub_rel=cmpPhaseFailureRate_ub_rel.*~isinf(cmpPhaseFailureRate_ub_rel);
+%cmpPhaseFailureRate_lb_rel(isnan(cmpPhaseFailureRate_lb_rel)) = 100;
+%cmpPhaseFailureRate_ub_rel(isnan(cmpPhaseFailureRate_ub_rel)) = 100;
+cmpPhaseFailureRate_relBounds = string(zeros(size(cmpPhaseFailureRate_ub_rel)));
+% for n=1:numel(cmpPhaseFailureRate_ub_rel)
+%     cmpPhaseFailureRate_relBounds(n) = string([num2str(cmpPhaseFailureRate_lb_rel(n)),' ',num2str(cmpPhaseFailureRate_ub_rel(n))]);
+%
+% end
+% Initialize the string matrix
+cmpPhaseFailureRate_relBounds = strings(size(cmpPhaseFailureRate_ub_rel));
+lb_rounded = round(cmpPhaseFailureRate_lb_rel, 1);
+ub_rounded = round(cmpPhaseFailureRate_ub_rel, 1);
+for n = 1:numel(cmpPhaseFailureRate_ub_rel)
+    cmpPhaseFailureRate_relBounds(n) = string([num2str(lb_rounded(n)), '% +', num2str(ub_rounded(n)),'%']);
+end
+cmpPhaseFailureRate_relBounds(isnan(lb_rounded)) = "Nan";
+cmpPhaseFailureRateTab = array2table([Cmp,cmpPhaseFailureRate_relBounds],'VariableNames',["Cmp";strcat("Phase",num2str((1:Sim.NPhases)'))]);
+disp('Confidence in component failure rate for each phase:')
+disp(cmpPhaseFailureRateTab)
 %% Components which had failed upon system failure
 figure
 ComponentFailLikelihoodOnSysFail = FailedComponents/NFailures;
@@ -406,20 +484,65 @@ if (FinalSysFailProbability>0)
     for P=1:Sim.NPhases
         PhaseFailures(P) = sum(PhaseOfFailure==P);
     end
+    PhaseFailureRate = PhaseFailures./NPhaseRuns;
     figure
-    bar(PhaseFailures/NSims)
+    bar(PhaseFailureRate)
     xlabel('Phase')
     ylabel(["Simulated probability system fails", "in each phase"])
     disp(['Failed in each phase the following number of times:    ', num2str(PhaseFailures)])
-    set(gca,'yscale','log')
     grid on
     title('Simulated probability system fails in each phase')
     exportgraphics(gcf,[Sim.fullSimName,'/QphaseFailure.png'])
+
+    %% Plot Phase-Specific Convergence Graphs
+    for P=1:Sim.NPhases
+        DevelopingFailureProbability_phase{P} = cumsum(SimOutcome==2&PhaseOfFailure==P)./(1:NSims)';
+        FinalSysFailProbability_phase(P) = DevelopingFailureProbability_phase{P}(end);
+    end
+
+    if NSims>1e5
+        sep = round(NSims/min(1e4,NSims),0);
+        DevelopingFailureProbability_phase{P} = downsample(DevelopingFailureProbability_phase{P},sep);
+        DevelopingFailureProbability_Ind = 1:sep:NSims;
+    else
+        DevelopingFailureProbability_Ind = 1:NSims;
+    end
+
+    figure
+    t2 = tiledlayout('flow','TileSpacing','compact','padding','compact');
+    for P=1:Sim.NPhases
+        nexttile(P)
+        title(['Phase ',num2str(P)])
+        if (FinalSysFailProbability_phase(P)>0)
+            semilogy(DevelopingFailureProbability_Ind,DevelopingFailureProbability_phase{P})
+            xlim([0 NSims])
+            ylim([FinalSysFailProbability_phase(P)*10^(-0.1),FinalSysFailProbability_phase(P)*10^0.1])
+            title(tl,'Convergence')
+            xlabel('Iteration No')
+            ylabel('Overall System Failure Probability')
+            yline(FinalSysFailProbability_phase(P),'k--')
+            yline(FinalSysFailProbability_phase(P)*1.05,'r--')
+            yline(FinalSysFailProbability_phase(P)*0.95,'r--')
+            title(['Phase ',num2str(P)])
+            grid on
+        end
+    end
+    lgd = legend('Prediction as Simulation Progressed','Final Value','5% Upper Confidence Bound','5% Lower Confidence Bound');
+    lgd.Layout.Tile='north';
+    lgd.NumColumns=4;
+
+    title(t2,'Convergence of Phase Failure Probabily')
+    rsz = get(gcf,'Position');
+    rsz(3) = 2 * rsz(3);
+    rsz(4) = 2 * rsz(4);
+    set(gcf,'Position',rsz)
+    exportgraphics(gcf,[Sim.fullSimName,'/simConvergence.png'])
+
 else
     disp('No failures in entire simulation time. Convergence not plotted')
 end
 %% End
-save([Sim.fullSimName,'/Results.',Sim.fullSimName,'.mat'],'NSims','NFailures','NComponentFailures','PhaseFailures','FinalSysFailProbability','NComponentFailures','-append')
+save([Sim.fullSimName,'/Results.',Sim.fullSimName,'.mat'],'NSims','NFailures','cmpPhaseFailureRateTab','PhaseFailureRate','NComponentFailures','PhaseFailures','FinalSysFailProbability','NComponentFailures','TPhaseTotalStore','-append')
 if opts.saveAllVariables
     save([Sim.fullSimName,'/AllResults.',Sim.fullSimName,'.mat'])
 end
