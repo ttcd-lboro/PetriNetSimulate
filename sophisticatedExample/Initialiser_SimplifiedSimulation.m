@@ -8,7 +8,7 @@ Sim.SimTitle = 'sophisticatedSim_SubnetMod';
 %Sim.PhaseDurations = [1,1,1,1,1]; % Duration of each phase specified in hours (if component failure data is also in hours)
 Sim.PhaseDurations = [3/60,1/60,1.7166,1/60,3/60]; % Duration of each phase specified in hours (if component failure data is also in hours)
 
-Sim.MaxNSims = 1;%  Number of missions to simulate
+Sim.MaxNSims = 1e4;%  Number of missions to simulate
 Sim.MaxSimTimeHrs = 0.2; % max sim time in hours
 Sim.NComponents = 40; % Number of all components in the system
 Sim.ConnectivityMatName = 'InputConnectivity-sophisticatedSim';
@@ -21,6 +21,7 @@ opts.failureRateMultiplier = 1000;% increases rate of failures arbitrarily to al
 opts.showProgressBar = true; % only works for parallel cases
 opts.progressBarUpdatePeriod = 3; % progress monitor updates every 3 seconds (example)
 opts.saveAllVariables = false; % save every simulation variable at end of simulation - normally only relevant variables are saved
+opts.allowLoneComponents = true; % allow components to not be connected to any phase net without error - not explicitly built for this. Potential issues in post-processing only
 
 %% Run code
 run PhasedPetriNetSimulator
