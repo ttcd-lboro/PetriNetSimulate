@@ -1,6 +1,6 @@
 %% Phased mission petri net code
 %
-% V2: 2024-Dec-2nd
+% V3: 2025-Nov-6th
 % Chris Dunne MEng, MRes
 % PhD Student - CDT Future Propulsion and Power
 % Loughborough University
@@ -63,7 +63,7 @@ while ~isempty(err)
 end
 
 diary([Sim.fullSimName,'/log.',Sim.fullSimName]); diary on
-rng('shuffle'); % Sets unique rand seed
+
 [AGlobal,AGlobalDims] = AssembleAGlobal(A,ASubnets,Sim);
 NGlobalTransitions = AGlobalDims(1);
 NGlobalPlaces = AGlobalDims(2);
@@ -122,6 +122,7 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
     end
     parfor runNo = 1:(Sim.MaxNSims)
         %%% ALGORITHM START %%%
+        rng('shuffle'); % Sets unique rand seed
         if toc(runTime)<MaxSimTime
 
             %% Initialise sim
@@ -298,7 +299,7 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
 else
     progCount = 0.1;
     for runNo = 1:(Sim.MaxNSims)
-
+        rng('shuffle'); % Sets unique rand seed
         run Algorithm4SerialRun % run the same algorithm as above - kept in seperate file for simplicity
 
         progress = mod(runNo/Sim.MaxNSims,0.05);
@@ -341,8 +342,8 @@ ylabel(["Component failures at ", "failure time / system failures"])
 xlabel('Component Number')
 set(gca,'yscale','log')
 yl = ylim;
-yl(1) = min(yl(1),0.8*min(ComponentFailLikelihoodOnSysFail(ComponentFailLikelihoodOnSysFail~=0)));
-yl(2) = max(yl(2),1.2*max(ComponentFailLikelihoodOnSysFail));
+yl(1) = min(yl(1),0.95*min(ComponentFailLikelihoodOnSysFail(ComponentFailLikelihoodOnSysFail~=0)));
+yl(2) = max(yl(2),1.05*max(ComponentFailLikelihoodOnSysFail));
 ylim(yl)
 
 exportgraphics(gcf,[Sim.fullSimName,'/QcomponentCausesFailure.png'])

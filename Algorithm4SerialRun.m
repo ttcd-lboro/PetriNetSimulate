@@ -19,6 +19,7 @@ if toc(runTime)<MaxSimTime
 
     tRemainTransitions = tInitialTransitions;
 
+    
     %% Loop til failure/success
     while true % Loop until the break keyword
         %% Continue loop conditions:
