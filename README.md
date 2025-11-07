@@ -1,3 +1,7 @@
+#VERSION 3.0 2025
+1) Improved randomness of results in parallel simulations
+2) New example for single-phase missions
+   
 #VERSION 2.1 2024
 1) Subnets now easier to define: Separate import matrices
 2) Improved handling of parallelisation
