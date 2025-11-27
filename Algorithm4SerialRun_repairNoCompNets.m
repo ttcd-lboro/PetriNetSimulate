@@ -7,11 +7,12 @@ if toc(runTime)<MaxSimTime
     MGlobal = MGlobal_0;
     PhaseEndTime = Sim.PhaseDurations(1);
     t_sys = 0; %system has time of 0
-    ALeaving = sum(A.A{1}==-1); % List number of transitions leaving each place
+    ALeaving = sum(A.Ain{1}==-1); % List number of transitions leaving each place
     SysFailedPlaceId = A.pIds{1}(ALeaving == 0); % Phase failed place is place no transitions leaving it
     if length(SysFailedPlaceId)>1;error('Multiple phase fail places detected');end
 
     % Get new component failure times
+    %componentWorkingPlaces = sum(A.Aout{1},1)==0;
     tInitialTransitions = zeros(NGlobalTransitions,1);
     if (opts.arbitraryFailureTimes)
         tInitialTransitions(1:Sim.NComponents) = 0.2*(1+rand(1,Sim.NComponents))/opts.failureRateMultiplier;
@@ -51,10 +52,11 @@ if toc(runTime)<MaxSimTime
                 %% Reinitialise for new phase
                 P = P+1;
                 PhaseEndTime = PhaseEndTime+Sim.PhaseDurations(P); %increment the system time at which the phase ends
-                AGlobal_P = AGlobal.A{P};
+                AGlobalIn_P = AGlobal.Ain{P};
+                AGlobalOut_P = AGlobal.Aout{P};
 
                 %Get phase failed place
-                NArcsLeavingEachPlace = sum(A.A{P}==-1,1); % List number of transitions leaving each place
+                NArcsLeavingEachPlace = sum(A.Ain{P}==-1,1); % List number of transitions leaving each place
                 SysFailedPlaceId = A.pIds{P}(NArcsLeavingEachPlace == 0); % Phase failed place is place no transitions leaving it
                 if length(SysFailedPlaceId)>1
                     error('Multiple phase fail places detected');
@@ -71,7 +73,7 @@ if toc(runTime)<MaxSimTime
 
         %% Find all the enabled transitions.
         for n = 1 : NGlobalTransitions %loop through each transition
-            InputInds = AGlobal_P(n,:)<0; %gives the indices of the input places to this transition (to check whether its enabled)
+            InputInds = AGlobalIn_P(n,:)<0; %gives the indices of the input places to this transition (to check whether its enabled)
             T_Enabled(n) = all(MGlobal(InputInds)) && ~isequal(InputInds,zeros(1,length(InputInds))); % Mark transition as enabled after checking current marking of these places to see if all have a token, also excludes places that have no inputs
         end
         if isempty(T_Enabled)
@@ -93,14 +95,14 @@ if toc(runTime)<MaxSimTime
 
         %% Fire transitions
         MGlobalPrevious = MGlobal; %Cache old MGlobal
-        MGlobal = MGlobal + (AGlobal_P' * T_Fire); %FIRE all transitions!
-        
+        MGlobal = MGlobal + (AGlobalIn_P+AGlobalOut_P)' * T_Fire; %FIRE all transitions!
+
         if opts.debugNetByPlotting
             disp(['Phase ', num2str(P),' is affected by the failure of the following componenents: '])
         end
 
-        
-        if any(MGlobal)    
+
+        if any(MGlobal)
             if opts.debugNetByPlotting
                 placesWithToken = find(MGlobal);
                 disp('Of these, the following contained a token:')
@@ -116,7 +118,7 @@ if toc(runTime)<MaxSimTime
         if opts.debugNetByPlotting
             if P~=PPrevious %replot graph from scratch if its a new phase or hasnt been plotted yet
                 fNet = figure(50);
-                [p1,fNet,LocalTransitionIndices,keepNodes] = PlotNet(AGlobal_P,1:NGlobalPlaces,1:NGlobalTransitions,['Global Petri Net in Phase ',num2str(P)],fNet);
+                [p1,fNet,LocalTransitionIndices,keepNodes] = PlotNet(AGlobalIn_P,AGlobalOut_P,1:NGlobalPlaces,1:NGlobalTransitions,['Global Petri Net in Phase ',num2str(P)],fNet);
                 hold on
                 h = zeros(4, 1);h(1) = plot(NaN,NaN,'ob','MarkerFaceColor','b');h(2) = plot(NaN,NaN,'ok','MarkerFaceColor','k');h(3) = plot(NaN,NaN,'or','MarkerFaceColor','r');h(4) = plot(NaN,NaN,'og','MarkerFaceColor','g'); % define symbols for legend
                 legend(h,'Empty place','Token','Disabled Transition','Enabled Transition','location','southoutside')
@@ -150,4 +152,5 @@ if toc(runTime)<MaxSimTime
 else
     SimOutcome(runNo) = 0;
 end
+
 %%% ALGORITHM END %%%

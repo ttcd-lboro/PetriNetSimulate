@@ -1,4 +1,4 @@
-function[p1,figHand,LocalTransitionIndices,keepNodes] = PlotNet(A,pIds,tIds,graphTitle,varargin)
+function[p1,figHand,LocalTransitionIndices,keepNodes] = PlotNet(Ain,Aout,pIds,tIds,graphTitle,varargin)
 
 if nargin>4
     figHand = varargin{1};
@@ -17,15 +17,12 @@ tIds = tIds(:);
 %be plotted
 
 %% Seperate into Forward and Backwards
-Aup=(A==-1)';
-Alow=(A==1);
-
-ADims = size(A);
+ADims = size(Ain);
 MaxDim = sum(ADims);
 AAssembled = zeros(MaxDim); %Initialise
 
-AAssembled([1:ADims(2)],[ADims(2)+1:MaxDim]) = Aup;
-AAssembled([(ADims(2)+1):MaxDim],[1:ADims(2)]) = Alow;
+AAssembled([1:ADims(2)],[ADims(2)+1:MaxDim]) = Ain';
+AAssembled([(ADims(2)+1):MaxDim],[1:ADims(2)]) = Aout;
 
 %% Plot to Check
 h1 = digraph(AAssembled);

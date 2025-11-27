@@ -119,8 +119,8 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
         ppm = ParforProgressbar(Sim.MaxNSims,'progressBarUpdatePeriod',opts.progressBarUpdatePeriod,'title','Total Simulation Progress'); %
     end
     parfor runNo = 1:Sim.MaxNSims
-        %%% ALGORITHM START %%%
 
+        %%% ALGORITHM START %%%
         rng('shuffle'); % Sets unique rand seed
         if toc(runTime)<MaxSimTime
 
@@ -129,7 +129,7 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
             MGlobal = MGlobal_0;
             PhaseEndTime = Sim.PhaseDurations(1);
             t_sys = 0; %system has time of 0
-            ALeaving = sum(A.A{1}==-1); % List number of transitions leaving each place
+            ALeaving = sum(A.Ain{1}==-1); % List number of transitions leaving each place
             SysFailedPlaceId = A.pIds{1}(ALeaving == 0); % Phase failed place is place no transitions leaving it
             if length(SysFailedPlaceId)>1;error('Multiple phase fail places detected');end
 
@@ -173,10 +173,11 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
                         %% Reinitialise for new phase
                         P = P+1;
                         PhaseEndTime = PhaseEndTime+Sim.PhaseDurations(P); %increment the system time at which the phase ends
-                        AGlobal_P = AGlobal.A{P};
+                        AGlobalIn_P = AGlobal.Ain{P};
+                        AGlobalOut_P = AGlobal.Aout{P};
 
                         %Get phase failed place
-                        NArcsLeavingEachPlace = sum(A.A{P}==-1,1); % List number of transitions leaving each place
+                        NArcsLeavingEachPlace = sum(A.Ain{P}==-1,1); % List number of transitions leaving each place
                         SysFailedPlaceId = A.pIds{P}(NArcsLeavingEachPlace == 0); % Phase failed place is place no transitions leaving it
                         if length(SysFailedPlaceId)>1
                             error('Multiple phase fail places detected');
@@ -193,7 +194,7 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
 
                 %% Find all the enabled transitions.
                 for n = 1 : NGlobalTransitions %loop through each transition
-                    InputInds = AGlobal_P(n,:)<0; %gives the indices of the input places to this transition (to check whether its enabled)
+                    InputInds = AGlobalIn_P(n,:)<0; %gives the indices of the input places to this transition (to check whether its enabled)
                     T_Enabled(n) = all(MGlobal(InputInds)) && ~isequal(InputInds,zeros(1,length(InputInds))); % Mark transition as enabled after checking current marking of these places to see if all have a token, also excludes places that have no inputs
                 end
                 if isempty(T_Enabled)
@@ -215,13 +216,19 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
 
                 %% Fire transitions
                 MGlobalPrevious = MGlobal; %Cache old MGlobal
-                MGlobal = MGlobal + (AGlobal_P' * T_Fire); %FIRE all transitions!
+                MGlobal = MGlobal + ((AGlobalIn_P+AGlobalOut_P)' * T_Fire); %FIRE all transitions!
+
+                if opts.debugNetByPlotting
+                    disp(['Phase ', num2str(P),' is affected by the failure of the following componenents: '])
+                end
+
 
                 if any(MGlobal)
                     if opts.debugNetByPlotting
                         placesWithToken = find(MGlobal);
                         disp('Of these, the following contained a token:')
                         disp(placesWithToken);
+                        disp('The current status of the corresponding places in the phase net is: (should all be true)')
                     end
                 elseif opts.debugNetByPlotting
                     disp('However none of these contained a token on this pass')
@@ -266,6 +273,7 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
         else
             SimOutcome(runNo) = 0;
         end
+
         %%% ALGORITHM END %%%
         if opts.showProgressBar
             ppm.increment();
@@ -279,7 +287,7 @@ else
     progCount = 0.1;
     for runNo = 1:(Sim.MaxNSims)
         rng('shuffle'); % Sets unique rand seed
-        run Algorithm4SerialRun_repairNoCompNets % run the same algorithm as above - kept in seperate file for simplicity
+        run Algorithm4SerialRun_repairNoCompNets.m % run the same algorithm as above - kept in seperate file for simplicity
 
         progress = mod(runNo/Sim.MaxNSims,0.05);
         if (runNo/Sim.MaxNSims)>(progCount)
@@ -403,7 +411,7 @@ diary off
 function [AGlobal,AGlobalDims] = AssembleAGlobal(A,ASubnets,Sim)
 
 disp("Assembling Global A-Matrix")
-NPhases = length(A.A);
+NPhases = length(A.Ain);
 maxPId = max(cellfun(@max,A.pIds));
 maxTId = max(cellfun(@max,A.tIds));
 AGlobal.tIds = 1:maxTId;
@@ -414,23 +422,29 @@ AGlobalZeros = zeros(AGlobalDims);
 
 %Put component A matrices into global format
 for P=1:NPhases
-    AGlobal.A{P} = AGlobalZeros;
-    AGlobal.A{P}(A.tIds{P},A.pIds{P}) = A.A{P};
+    AGlobal.Ain{P} = AGlobalZeros;
+    AGlobal.Ain{P}(A.tIds{P},A.pIds{P}) = A.Ain{P};
+
+    AGlobal.Aout{P} = AGlobalZeros;
+    AGlobal.Aout{P}(A.tIds{P},A.pIds{P}) = A.Aout{P};
 end
 
 % Add subnets if present
-if ~isempty(ASubnets)&&iscell(ASubnets.A)
-    AGlobalSubnet = AGlobalZeros;
-    for SId=1:length(ASubnets.A)
-        AGlobalSubnet(ASubnets.tIds{SId},ASubnets.pIds{SId}) = ASubnets.A{SId};
+if ~isempty(ASubnets)&&(iscell(ASubnets.Ain)&&iscell(ASubnets.Aout))
+    AGlobalSubnet_in = AGlobalZeros;
+    for SId=1:length(ASubnets.Ain)
+        AGlobalSubnet_in(ASubnets.tIds{SId},ASubnets.pIds{SId}) = ASubnets.Ain{SId};
+        AGlobalSubnet_out(ASubnets.tIds{SId},ASubnets.pIds{SId}) = ASubnets.Aout{SId};
     end
     for P=1:NPhases
-        AGlobal.A{P} = AGlobal.A{P} + AGlobalSubnet; %Put componenet failures into the global matrix
+        AGlobal.Ain{P} = AGlobal.Ain{P} + AGlobalSubnet_in; %Put subnet failures into the global matrix
+        AGlobal.Aout{P} = AGlobal.Aout{P} + AGlobalSubnet_out; %Put subnet failures into the global matrix
+    
     end
 end
 
 disp("Global A-Matrix Completed")
 
-AGlobalDims = size(AGlobal.A{1});
+AGlobalDims = size(AGlobal.Ain{1});
 
 end
