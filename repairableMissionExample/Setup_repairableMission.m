@@ -18,10 +18,15 @@ failDatTable.BetaOrSigma = [0,0,0]';
 %For unphased missions, there is only 1 A matrix, and so use A.A{1} for all entries
 A.pIds{1} = [1:7]; %look at A-matrix for phase 1 and declare place IDs
 A.tIds{1} = [1:4]; %look at A-matrix for phase 1 and declare transition IDs
-A.A{1} = [-1,0,0,1,0,0,0;
-    0,-1,0,0,1,0,0;
+A.Ain{1} = [-1,0,0,0,0,0,0;
+    0,-1,0,0,0,0,0;
     0,0,-1,0,0,1,0;
-    0,0,0,-1,-1,-1, 1;];  %A-matrix for phase 1
+    0,0,0,-1,-1,-1, 0;];  %A-matrix for phase 1
+
+A.Aout{1} = [0,0,0,1,0,0,0;
+    0,0,0,0,0,0,0;
+    0,0,0,0,0,1,0;
+    0,0,0,0,0,0, 1;];  %A-matrix for phase 1
 
 ASubnet = [];% decalare there are no subnets
 

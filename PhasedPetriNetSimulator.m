@@ -46,7 +46,7 @@
 %% Load Data
 % Define "Sim and opts structures in auxilliary file first (see exampleInitialiser.m)"
 warning off backtrace
-load([Sim.ConnectivityMatName,'.mat'],'A','ASubnets','failDatTable','ComponentNetToPhaseNetIDs_allPhases'); % read in A matrices for all phases with their associated (glboal) place and transition IDs.
+load([Sim.CaseDataMatName,'.mat'],'A','ASubnets','failDatTable','ComponentNetToPhaseNetIDs_allPhases'); % read in A matrices for all phases with their associated (glboal) place and transition IDs.
 if ~exist('ASubnets','var')
     warning('No subnets found. Assuming none present')
     ASubnets = [];
@@ -101,7 +101,7 @@ if opts.nProcs>1
 end
 
 warning off backtrace
-[~] = GenerateTimesToFailure(failDatTable,1); %prerun generate times to failure so warnings about components with no data are shown
+[~] = GenerateTimesFromDistribution(failDatTable,1); %prerun generate times to failure so warnings about components with no data are shown
 if opts.arbitraryFailureTimes
     warning("'opts.arbitraryFailureTimes' is enabled - all failure times are random for this case")
 end
@@ -139,7 +139,7 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
             if (opts.arbitraryFailureTimes)
                 tInitialTransitions(1:Sim.NComponents) = 0.2*(1+rand(1,Sim.NComponents))/opts.failureRateMultiplier;
             else
-                tInitialTransitions(1:Sim.NComponents) = GenerateTimesToFailure(failDatTable,0)/opts.failureRateMultiplier; %
+                tInitialTransitions(1:Sim.NComponents) = GenerateTimesFromDistribution(failDatTable,0)/opts.failureRateMultiplier; %
             end
 
             tRemainTransitions = tInitialTransitions;
@@ -300,7 +300,7 @@ else
     progCount = 0.1;
     for runNo = 1:(Sim.MaxNSims)
         rng('shuffle'); % Sets unique rand seed
-        run Algorithm4SerialRun % run the same algorithm as above - kept in seperate file for simplicity
+        run Algorithm4SerialRun_phased % run the same algorithm as above - kept in seperate file for simplicity
 
         progress = mod(runNo/Sim.MaxNSims,0.05);
         if (runNo/Sim.MaxNSims)>(progCount)

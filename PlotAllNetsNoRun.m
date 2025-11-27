@@ -4,7 +4,7 @@
 
 %% Code: Do not modify %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 addpath('../')
-myMatName = [InputConnectivityMatName,'.mat'];
+myMatName = [CaseDataMatName,'.mat'];
 myMatFile = matfile(myMatName); myMatFileVars = who(myMatFile);
 load(myMatName,'A'); % read in A matrices for all phases with their associated (glboal) place and transition IDs.
 
