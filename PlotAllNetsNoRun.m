@@ -4,6 +4,7 @@
 
 %% Code: Do not modify %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 addpath('../')
+if ~exist('CaseDataMatName','var') ;CaseDataMatName = Sim.CaseDataMatName;end
 myMatName = [CaseDataMatName,'.mat'];
 myMatFile = matfile(myMatName); myMatFileVars = who(myMatFile);
 load(myMatName,'A'); % read in A matrices for all phases with their associated (glboal) place and transition IDs.
@@ -59,7 +60,7 @@ if sum(contains(myMatFileVars,'AGlobal'))==1
         T3=gca;
     end
     % Plot global Nets (subnets included automaticly)
-    for P=1:length(AGlobal.A)
+    for P=1:length(AGlobal.Ain)
         if multipleNets; nexttile; end
         PlotNet(AGlobal.Ain{P},AGlobal.Aout{P},AGlobal.pIds,AGlobal.tIds,[' in Phase ',num2str(P)],figNo);
     end

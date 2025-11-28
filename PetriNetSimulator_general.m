@@ -48,7 +48,8 @@
 %% Load Data
 % Define "Sim and opts structures in auxilliary file first (see exampleInitialiser.m)"
 warning off backtrace
-load([Sim.CaseDataMatName,'.mat'],'A','ASubnets','failDatTable','repairRateTable','OtherMarkings'); % read in A matrices for all phases with their associated (glboal) place and transition IDs.
+load([Sim.CaseDataMatName,'.mat'],'A','ASubnets','failDatTable','repairRateTable','OtherMarkings','ComponentNetToPhaseNetIDs_allPhases'); % read in A matrices for all phases with their associated (glboal) place and transition IDs.
+
 if ~exist('ASubnets','var')
     warning('No subnets found. Assuming none present')
     ASubnets = [];
@@ -70,6 +71,7 @@ end
 diary([Sim.fullSimName,'/log.',Sim.fullSimName]); diary on
 
 [AGlobal,AGlobalDims] = AssembleAGlobal(A,ASubnets,Sim);
+save(Sim.CaseDataMatName,'AGlobal','-append');
 NGlobalTransitions = AGlobalDims(1);
 NGlobalPlaces = AGlobalDims(2);
 
@@ -515,6 +517,7 @@ end
 % Add subnets if present
 if ~isempty(ASubnets)&&(iscell(ASubnets.Ain)&&iscell(ASubnets.Aout))
     AGlobalSubnet_in = AGlobalZeros;
+    AGlobalSubnet_out = AGlobalZeros;
     for SId=1:length(ASubnets.Ain)
         AGlobalSubnet_in(ASubnets.tIds{SId},ASubnets.pIds{SId}) = ASubnets.Ain{SId};
         AGlobalSubnet_out(ASubnets.tIds{SId},ASubnets.pIds{SId}) = ASubnets.Aout{SId};

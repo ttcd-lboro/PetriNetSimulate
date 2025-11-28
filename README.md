@@ -16,15 +16,15 @@ The 'mission petri-net' is handled by a while loop but all component nets, and p
 All missions are programmed to be independent such that components reinitialise their failure times from the fialure data at the start of each simulation/mission.
 See help of 'PhasedPetriNetSimulator.m' for details on method
 
-To familiarise yourself with the code programming inputs, the simplest way to run your first simulation is to run 'additionalTools/exampleBuildMatricesFromExcel.m' to generate a .mat file of the place/transition connectivity and component failure data from excel input files. Then run 'exampleDummySimulationInitialiser.m' to simulate the data
+To familiarise yourself with the code programming inputs, the simplest way to run your first simulation is to run 'additionalTools/exampleBuildMatricesFromExcel.m' to generate a .mat file of the place/transition connectivity and component failure data from excel input files. Then run an initialiser to simulate the data
 
 # Steps to a custom initialisation:
 
-1) Build A-matrix for each phase petri net and store in the 'A' cell array (1 cell per phase) of InputConnectivity*.mat
+1) Build A-matrix for each phase petri net and store in the 'A' cell array (1 cell per phase) of CaseData*.mat
     <br> See 'additionalTools/buildMatricesFromExcel.m' for an example on how this can be done
-    <br> Run the code to generate an example InputConnectivity*.mat file which is read in by the solver
+    <br> Run the code to generate an example CaseData*.mat file which is read in by the solver
 
-2) Store component failure data in the 'failDatTable' table variable of InputConnectivity*.mat
+2) Store component failure data in the 'failDatTable' table variable of CaseData*.mat
     <br> Component data can be be of exponential, weibull or normal distributions (indexed 0,1,2 respectively in the table column "Datatype")
     <br> See 'RawInputData/ComponentFailureData.xlsx' for an example definition of failure data, of which the highlighted columns are read into matlab in 'additionalTools/buildMatricesFromExcel.m'
     <br> See 'additionalTools/buildMatricesFromExcel.m' for example on how an excel definition of the data is converted to tabular format
@@ -36,7 +36,7 @@ To familiarise yourself with the code programming inputs, the simplest way to ru
         <br> Sim.MaxNSims = 1.5e10; %  Number of missions to simulate
         <br> Sim.MaxSimTimeHrs = 56; % max sim time in hours
         <br> Sim.NComponents = 40; % Number of all component subnets (where a subnet is the petri net for a given phase)
-        <br> Sim.ConnectivityMatName = 'InputConnectivity-mySim1';
+        <br> Sim.CaseDataMatName = 'CaseData-mySim1';
 
 4) Declare simulation options in the "opts" structure - usually done within the initialiser script - see 'exampleInitialiser.m'
     <br> Example:
