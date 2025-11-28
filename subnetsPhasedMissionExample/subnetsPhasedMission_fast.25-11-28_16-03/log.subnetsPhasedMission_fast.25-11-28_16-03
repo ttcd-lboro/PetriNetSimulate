@@ -1,0 +1,838 @@
+Assembling Global A-Matrix
+Global A-Matrix Completed
+{Error using <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('save')" style="font-weight:bold">save</a>
+Variable 'append' not found.
+
+Error in <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('PetriNetSimulator_general', '/home/ttcd/Documents/MATLAB/PetriNetSimulate/PetriNetSimulator_general.m', 74)" style="font-weight:bold">PetriNetSimulator_general</a> (<a href="matlab: opentoline('/home/ttcd/Documents/MATLAB/PetriNetSimulate/PetriNetSimulator_general.m',74,0)">line 74</a>)
+save(Sim.CaseDataMatName,'AGlobal','append');
+
+Error in <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('run', '/software/matlab/R2024a/toolbox/matlab/lang/run.m', 112)" style="font-weight:bold">run</a> (<a href="matlab: opentoline('/software/matlab/R2024a/toolbox/matlab/lang/run.m',112,0)">line 112</a>)
+evalin('caller', strcat(scriptStem, ';'));
+
+Error in <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('Initialiser_subnetsPhasedMission_fast', '/home/ttcd/Documents/MATLAB/PetriNetSimulate/subnetsPhasedMissionExample/Initialiser_subnetsPhasedMission_fast.m', 27)" style="font-weight:bold">Initialiser_subnetsPhasedMission_fast</a> (<a href="matlab: opentoline('/home/ttcd/Documents/MATLAB/PetriNetSimulate/subnetsPhasedMissionExample/Initialiser_subnetsPhasedMission_fast.m',27,0)">line 27</a>)
+run PetriNetSimulator_general
+} 
+Sim.CaseDataMatName
+
+ans =
+
+    'CaseData-subnetsPhasedMission'
+
+if system_dependent('IsDebugMode')==1, dbquit all; end
+Assembling Global A-Matrix
+Global A-Matrix Completed
+Initialiser_subnetsPhasedMission_fast
+[Warning: Variable 'repairRateTable' not found.] 
+[Warning: Variable 'OtherMarkings' not found.] 
+Assembling Global A-Matrix
+Global A-Matrix Completed
+Starting parallel pool (parpool) using the 'Processes' profile ...
+
+{Operation terminated by user during <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('parallel.cluster.Local/hGetTaskStateEnum', '/software/matlab/R2024a/toolbox/parallel/cluster/+parallel/+cluster/@Local/Local.m', 404)" style="font-weight:bold">parallel.cluster.Local/hGetTaskStateEnum</a> (<a href="matlab: opentoline('/software/matlab/R2024a/toolbox/parallel/cluster/+parallel/+cluster/@Local/Local.m',404,0)">line 404</a>)
+
+
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('parallel.cluster.Local/deriveJobStateFromTasks', '/software/matlab/R2024a/toolbox/parallel/cluster/+parallel/+cluster/@Local/deriveJobStateFromTasks.m', 17)" style="font-weight:bold">parallel.cluster.Local/deriveJobStateFromTasks</a> (<a href="matlab: opentoline('/software/matlab/R2024a/toolbox/parallel/cluster/+parallel/+cluster/@Local/deriveJobStateFromTasks.m',17,0)">line 17</a>)
+    taskState = obj.hGetTaskStateEnum(thisTask);
+
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('parallel.cluster.Local/getJobState', '/software/matlab/R2024a/toolbox/parallel/cluster/+parallel/+cluster/@Local/Local.m', 149)" style="font-weight:bold">parallel.cluster.Local/getJobState</a> (<a href="matlab: opentoline('/software/matlab/R2024a/toolbox/parallel/cluster/+parallel/+cluster/@Local/Local.m',149,0)">line 149</a>)
+                state = obj.deriveJobStateFromTasks(job);
+
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('parallel.cluster.Local/hGetJobState', '/software/matlab/R2024a/toolbox/parallel/cluster/+parallel/+cluster/@Local/Local.m', 354)" style="font-weight:bold">parallel.cluster.Local/hGetJobState</a> (<a href="matlab: opentoline('/software/matlab/R2024a/toolbox/parallel/cluster/+parallel/+cluster/@Local/Local.m',354,0)">line 354</a>)
+                state = cluster.getJobState(job, jobStateInStorage);
+
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('parallel.internal.cluster.CJSJobMixin/hGetStateEnum', '/software/matlab/R2024a/toolbox/parallel/cluster/+parallel/+internal/+cluster/CJSJobMixin.m', 202)" style="font-weight:bold">parallel.internal.cluster.CJSJobMixin/hGetStateEnum</a> (<a href="matlab: opentoline('/software/matlab/R2024a/toolbox/parallel/cluster/+parallel/+internal/+cluster/CJSJobMixin.m',202,0)">line 202</a>)
+                s{ii} = cluster.hGetJobState( thisJob, thisJob.hGetProperty( 'StateEnum' ) );
+
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('parallel.Job/get.StateEnum', '/software/matlab/R2024a/toolbox/parallel/cluster/+parallel/@Job/Job.m', 280)" style="font-weight:bold">parallel.Job/get.StateEnum</a> (<a href="matlab: opentoline('/software/matlab/R2024a/toolbox/parallel/cluster/+parallel/@Job/Job.m',280,0)">line 280</a>)
+            se = obj.hGetStateEnum();
+
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('parallel.Job/get.State', '/software/matlab/R2024a/toolbox/parallel/cluster/+parallel/@Job/Job.m', 272)" style="font-weight:bold">parallel.Job/get.State</a> (<a href="matlab: opentoline('/software/matlab/R2024a/toolbox/parallel/cluster/+parallel/@Job/Job.m',272,0)">line 272</a>)
+            s = obj.StateEnum.Name;
+
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('parallel.Job/hWarnIfNotSubmitted', '/software/matlab/R2024a/toolbox/parallel/cluster/+parallel/@Job/Job.m', 1610)" style="font-weight:bold">parallel.Job/hWarnIfNotSubmitted</a> (<a href="matlab: opentoline('/software/matlab/R2024a/toolbox/parallel/cluster/+parallel/@Job/Job.m',1610,0)">line 1610</a>)
+            if strcmp(obj.State, 'pending')
+
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('parallel.internal.cluster.wait', '/software/matlab/R2024a/toolbox/parallel/cluster/+parallel/+internal/+cluster/wait.m', 7)" style="font-weight:bold">parallel.internal.cluster.wait</a> (<a href="matlab: opentoline('/software/matlab/R2024a/toolbox/parallel/cluster/+parallel/+internal/+cluster/wait.m',7,0)">line 7</a>)
+    workunit.hWarnIfNotSubmitted();
+
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('parallel.Job/doWait', '/software/matlab/R2024a/toolbox/parallel/cluster/+parallel/@Job/Job.m', 666)" style="font-weight:bold">parallel.Job/doWait</a> (<a href="matlab: opentoline('/software/matlab/R2024a/toolbox/parallel/cluster/+parallel/@Job/Job.m',666,0)">line 666</a>)
+            ok = parallel.internal.cluster.wait( job, varargin{:} );
+
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('parallel.Job/wait', '/software/matlab/R2024a/toolbox/parallel/cluster/+parallel/@Job/Job.m', 1296)" style="font-weight:bold">parallel.Job/wait</a> (<a href="matlab: opentoline('/software/matlab/R2024a/toolbox/parallel/cluster/+parallel/@Job/Job.m',1296,0)">line 1296</a>)
+                ok = job.doWait( state, timeout );
+
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('parallel.internal.pool.AbstractInteractiveClient/start', '/software/matlab/R2024a/toolbox/parallel/cluster/+parallel/+internal/+pool/AbstractInteractiveClient.m', 114)" style="font-weight:bold">parallel.internal.pool.AbstractInteractiveClient/start</a> (<a href="matlab: opentoline('/software/matlab/R2024a/toolbox/parallel/cluster/+parallel/+internal/+pool/AbstractInteractiveClient.m',114,0)">line 114</a>)
+                obj.ParallelJob.wait("running", 0.1);
+
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('parallel.internal.pool.AbstractClusterPool>iStartClient', '/software/matlab/R2024a/toolbox/parallel/cluster/+parallel/+internal/+pool/@AbstractClusterPool/AbstractClusterPool.m', 797)" style="font-weight:bold">parallel.internal.pool.AbstractClusterPool>iStartClient</a> (<a href="matlab: opentoline('/software/matlab/R2024a/toolbox/parallel/cluster/+parallel/+internal/+pool/@AbstractClusterPool/AbstractClusterPool.m',797,0)">line 797</a>)
+[spmdEnabledMode, spmdInitialized] = client.start(sessionBuildFcn, sessionInfo, numWorkers, cluster, ...
+
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('parallel.internal.pool.AbstractClusterPool.hBuildPool', '/software/matlab/R2024a/toolbox/parallel/cluster/+parallel/+internal/+pool/@AbstractClusterPool/AbstractClusterPool.m', 623)" style="font-weight:bold">parallel.internal.pool.AbstractClusterPool.hBuildPool</a> (<a href="matlab: opentoline('/software/matlab/R2024a/toolbox/parallel/cluster/+parallel/+internal/+pool/@AbstractClusterPool/AbstractClusterPool.m',623,0)">line 623</a>)
+                iStartClient(client, sessionInfo, cluster, argsList);
+
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('parallel.internal.pool.doParpool', '/software/matlab/R2024a/toolbox/parallel/cluster/+parallel/+internal/+pool/doParpool.m', 22)" style="font-weight:bold">parallel.internal.pool.doParpool</a> (<a href="matlab: opentoline('/software/matlab/R2024a/toolbox/parallel/cluster/+parallel/+internal/+pool/doParpool.m',22,0)">line 22</a>)
+    pool = parallel.internal.pool.AbstractClusterPool.hBuildPool(constructorArgs{:});
+
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('parpool', '/software/matlab/R2024a/toolbox/parallel/cluster/cluster/parpool.m', 118)" style="font-weight:bold">parpool</a> (<a href="matlab: opentoline('/software/matlab/R2024a/toolbox/parallel/cluster/cluster/parpool.m',118,0)">line 118</a>)
+    pool = parallel.internal.pool.doParpool(sessionInfo, varargin{:});
+
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('parallel.internal.parpool.getOrCreateCurrentPool', '/software/matlab/R2024a/toolbox/parallel/cluster/+parallel/+internal/+parpool/getOrCreateCurrentPool.m', 13)" style="font-weight:bold">parallel.internal.parpool.getOrCreateCurrentPool</a> (<a href="matlab: opentoline('/software/matlab/R2024a/toolbox/parallel/cluster/+parallel/+internal/+parpool/getOrCreateCurrentPool.m',13,0)">line 13</a>)
+        pool = parpool(varargin{:});
+
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('gcp', '/software/matlab/R2024a/toolbox/parallel/cluster/cluster/gcp.m', 45)" style="font-weight:bold">gcp</a> (<a href="matlab: opentoline('/software/matlab/R2024a/toolbox/parallel/cluster/cluster/gcp.m',45,0)">line 45</a>)
+        aPool = parallel.internal.parpool.getOrCreateCurrentPool();
+
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('PetriNetSimulator_general', '/home/ttcd/Documents/MATLAB/PetriNetSimulate/PetriNetSimulator_general.m', 98)" style="font-weight:bold">PetriNetSimulator_general</a> (<a href="matlab: opentoline('/home/ttcd/Documents/MATLAB/PetriNetSimulate/PetriNetSimulator_general.m',98,0)">line 98</a>)
+            poolobj = gcp();
+
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('run', '/software/matlab/R2024a/toolbox/matlab/lang/run.m', 112)" style="font-weight:bold">run</a> (<a href="matlab: opentoline('/software/matlab/R2024a/toolbox/matlab/lang/run.m',112,0)">line 112</a>)
+evalin('caller', strcat(scriptStem, ';'));
+
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('Initialiser_subnetsPhasedMission_fast', '/home/ttcd/Documents/MATLAB/PetriNetSimulate/subnetsPhasedMissionExample/Initialiser_subnetsPhasedMission_fast.m', 27)" style="font-weight:bold">Initialiser_subnetsPhasedMission_fast</a> (<a href="matlab: opentoline('/home/ttcd/Documents/MATLAB/PetriNetSimulate/subnetsPhasedMissionExample/Initialiser_subnetsPhasedMission_fast.m',27,0)">line 27</a>)
+run PetriNetSimulator_general
+} 
+Initialiser_subnetsPhasedMission_fast
+[Warning: Variable 'repairRateTable' not found.] 
+[Warning: Variable 'OtherMarkings' not found.] 
+Assembling Global A-Matrix
+Global A-Matrix Completed
+[Warning: Component No. 32 has no failure data - assuming time to failure = 1e9 s] 
+[Warning: Component No. 35 has no failure data - assuming time to failure = 1e9 s] 
+[Warning: Component No. 38 has no failure data - assuming time to failure = 1e9 s] 
+[Warning: Component No. 39 has no failure data - assuming time to failure = 1e9 s] 
+[Warning: Component No. 40 has no failure data - assuming time to failure = 1e9 s] 
+Simulation running
+Phase 1 is affected by the failure of the following componenents: 
+Of these, the following contained a token:
+     1
+     2
+     3
+     4
+     5
+     6
+     7
+     8
+     9
+    10
+    11
+    12
+    13
+    14
+    15
+    16
+    17
+    18
+    19
+    20
+    21
+    22
+    23
+    24
+    25
+    26
+    27
+    28
+    29
+    30
+    31
+    32
+    33
+    34
+    35
+    36
+    37
+    38
+    39
+    40
+
+The current status of the corresponding places in the phase net is: (should all be true)
+Press any key to step through component failures and their effects: 
+Phase 1 is affected by the failure of the following componenents: 
+Of these, the following contained a token:
+     1
+     2
+     3
+     4
+     5
+     6
+     7
+     8
+     9
+    10
+    11
+    12
+    13
+    14
+    15
+    16
+    17
+    18
+    19
+    20
+    21
+    22
+    23
+    24
+    25
+    26
+    27
+    28
+    29
+    30
+    31
+    32
+    33
+    34
+    35
+    36
+    37
+    38
+    39
+    40
+
+The current status of the corresponding places in the phase net is: (should all be true)
+Press any key to step through component failures and their effects: 
+Phase 1 is affected by the failure of the following componenents: 
+Of these, the following contained a token:
+     1
+     2
+     3
+     4
+     5
+     6
+     7
+     8
+     9
+    10
+    11
+    12
+    13
+    14
+    15
+    16
+    17
+    18
+    19
+    20
+    21
+    22
+    23
+    24
+    25
+    26
+    27
+    28
+    29
+    30
+    31
+    32
+    33
+    34
+    35
+    36
+    37
+    38
+    39
+    40
+
+The current status of the corresponding places in the phase net is: (should all be true)
+Press any key to step through component failures and their effects: 
+Phase 1 is affected by the failure of the following componenents: 
+Of these, the following contained a token:
+     1
+     2
+     3
+     4
+     5
+     6
+     7
+     8
+     9
+    10
+    11
+    12
+    13
+    14
+    15
+    16
+    17
+    18
+    19
+    20
+    21
+    22
+    23
+    24
+    25
+    26
+    27
+    28
+    29
+    30
+    31
+    32
+    33
+    34
+    35
+    36
+    37
+    38
+    39
+    40
+
+The current status of the corresponding places in the phase net is: (should all be true)
+Press any key to step through component failures and their effects: 
+Phase 1 is affected by the failure of the following componenents: 
+Of these, the following contained a token:
+     1
+     2
+     3
+     4
+     5
+     6
+     7
+     8
+     9
+    10
+    11
+    12
+    13
+    14
+    15
+    16
+    17
+    18
+    19
+    20
+    21
+    22
+    23
+    24
+    25
+    26
+    27
+    28
+    29
+    30
+    31
+    32
+    33
+    34
+    35
+    36
+    37
+    38
+    39
+    40
+
+The current status of the corresponding places in the phase net is: (should all be true)
+Press any key to step through component failures and their effects: 
+Phase 1 is affected by the failure of the following componenents: 
+Of these, the following contained a token:
+     1
+     2
+     3
+     4
+     5
+     6
+     7
+     8
+     9
+    10
+    11
+    12
+    13
+    14
+    15
+    16
+    17
+    18
+    19
+    20
+    21
+    22
+    23
+    24
+    25
+    26
+    27
+    28
+    29
+    30
+    31
+    32
+    33
+    34
+    35
+    36
+    37
+    38
+    39
+    40
+
+The current status of the corresponding places in the phase net is: (should all be true)
+Press any key to step through component failures and their effects: 
+Phase 1 is affected by the failure of the following componenents: 
+Of these, the following contained a token:
+     1
+     2
+     3
+     4
+     5
+     6
+     7
+     8
+     9
+    10
+    11
+    12
+    13
+    14
+    15
+    16
+    17
+    18
+    19
+    20
+    21
+    22
+    23
+    24
+    25
+    26
+    27
+    28
+    29
+    30
+    31
+    32
+    33
+    34
+    35
+    36
+    37
+    38
+    39
+    40
+
+The current status of the corresponding places in the phase net is: (should all be true)
+Press any key to step through component failures and their effects: 
+Phase 1 is affected by the failure of the following componenents: 
+Of these, the following contained a token:
+     1
+     2
+     3
+     4
+     5
+     6
+     7
+     8
+     9
+    10
+    11
+    12
+    13
+    14
+    15
+    16
+    17
+    18
+    19
+    20
+    21
+    22
+    23
+    24
+    25
+    26
+    27
+    28
+    29
+    30
+    31
+    32
+    33
+    34
+    35
+    36
+    37
+    38
+    39
+    40
+
+The current status of the corresponding places in the phase net is: (should all be true)
+Press any key to step through component failures and their effects: 
+Phase 1 is affected by the failure of the following componenents: 
+Of these, the following contained a token:
+     1
+     2
+     3
+     4
+     5
+     6
+     7
+     8
+     9
+    10
+    11
+    12
+    13
+    14
+    15
+    16
+    17
+    18
+    19
+    20
+    21
+    22
+    23
+    24
+    25
+    26
+    27
+    28
+    29
+    30
+    31
+    32
+    33
+    34
+    35
+    36
+    37
+    38
+    39
+    40
+
+The current status of the corresponding places in the phase net is: (should all be true)
+Press any key to step through component failures and their effects: 
+Phase 1 is affected by the failure of the following componenents: 
+Of these, the following contained a token:
+     1
+     2
+     3
+     4
+     5
+     6
+     7
+     8
+     9
+    10
+    11
+    12
+    13
+    14
+    15
+    16
+    17
+    18
+    19
+    20
+    21
+    22
+    23
+    24
+    25
+    26
+    27
+    28
+    29
+    30
+    31
+    32
+    33
+    34
+    35
+    36
+    37
+    38
+    39
+    40
+
+The current status of the corresponding places in the phase net is: (should all be true)
+Press any key to step through component failures and their effects: 
+{Operation terminated by user during <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('Algorithm4SerialRun_general', '/home/ttcd/Documents/MATLAB/PetriNetSimulate/Algorithm4SerialRun_general.m', 165)" style="font-weight:bold">Algorithm4SerialRun_general</a> (<a href="matlab: opentoline('/home/ttcd/Documents/MATLAB/PetriNetSimulate/Algorithm4SerialRun_general.m',165,0)">line 165</a>)
+
+
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('run', '/software/matlab/R2024a/toolbox/matlab/lang/run.m', 112)" style="font-weight:bold">run</a> (<a href="matlab: opentoline('/software/matlab/R2024a/toolbox/matlab/lang/run.m',112,0)">line 112</a>)
+evalin('caller', strcat(scriptStem, ';'));
+
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('PetriNetSimulator_general', '/home/ttcd/Documents/MATLAB/PetriNetSimulate/PetriNetSimulator_general.m', 328)" style="font-weight:bold">PetriNetSimulator_general</a> (<a href="matlab: opentoline('/home/ttcd/Documents/MATLAB/PetriNetSimulate/PetriNetSimulator_general.m',328,0)">line 328</a>)
+        run Algorithm4SerialRun_general.m % run the same algorithm as above - kept in seperate file for simplicity
+
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('run', '/software/matlab/R2024a/toolbox/matlab/lang/run.m', 112)" style="font-weight:bold">run</a> (<a href="matlab: opentoline('/software/matlab/R2024a/toolbox/matlab/lang/run.m',112,0)">line 112</a>)
+evalin('caller', strcat(scriptStem, ';'));
+
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('Initialiser_subnetsPhasedMission_fast', '/home/ttcd/Documents/MATLAB/PetriNetSimulate/subnetsPhasedMissionExample/Initialiser_subnetsPhasedMission_fast.m', 27)" style="font-weight:bold">Initialiser_subnetsPhasedMission_fast</a> (<a href="matlab: opentoline('/home/ttcd/Documents/MATLAB/PetriNetSimulate/subnetsPhasedMissionExample/Initialiser_subnetsPhasedMission_fast.m',27,0)">line 27</a>)
+run PetriNetSimulator_general
+} 
+MGlobal#
+ MGlobal#
+        ↑
+{Error: Invalid text character. Check for unsupported symbol, invisible character, or pasting of non-ASCII
+characters.
+} 
+MGlobal
+
+MGlobal =
+
+     1
+     1
+     1
+     1
+     1
+     1
+     1
+     1
+     1
+     1
+     1
+     1
+     1
+     1
+     1
+     1
+     1
+     1
+     1
+     1
+     1
+     1
+     1
+     1
+     1
+     1
+     1
+     1
+     1
+     1
+     1
+     1
+     1
+     1
+     1
+     1
+     1
+     1
+     1
+     1
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+     0
+
+find(MGlobal)
+
+ans =
+
+     1
+     2
+     3
+     4
+     5
+     6
+     7
+     8
+     9
+    10
+    11
+    12
+    13
+    14
+    15
+    16
+    17
+    18
+    19
+    20
+    21
+    22
+    23
+    24
+    25
+    26
+    27
+    28
+    29
+    30
+    31
+    32
+    33
+    34
+    35
+    36
+    37
+    38
+    39
+    40
+
