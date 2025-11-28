@@ -16,7 +16,7 @@ Sim.TokenCopyingBetweenNets = true; % Whether or not to use token copying betwee
 
 %% Set Options
 opts.nProcs = 1; % Number of computer processors to use for simulation
-opts.debugNetByPlotting = true;
+opts.debugNetByPlotting = false;
 opts.arbitraryFailureTimes = false; %doesnt read the failure times matrix - just uses random times to allow debugging
 opts.failureRateMultiplier = 1000;% increases rate of failures arbitrarily to allow quicker debugging
 opts.showProgressBar = true; % only works for parallel cases

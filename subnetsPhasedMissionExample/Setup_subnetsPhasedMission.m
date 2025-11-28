@@ -119,4 +119,10 @@ end
 
 %% Save and Plot
 PlotAllNetsNoRun
-exportgraphics(gcf,[CaseDataMatName,'_phasePNs.png'])
+exportgraphics(figure(100),[CaseDataMatName,'_phasePNs.png'])
+exportgraphics(figure(101),[CaseDataMatName,'_subnetPNs.png'])
+try 
+    exportgraphics(figure(102),[CaseDataMatName,'_globalPNs.png']) 
+catch
+
+end
