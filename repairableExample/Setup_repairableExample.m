@@ -3,19 +3,21 @@ clc
 addpath('..')
 
 dataPath = 'RawInputData';
-CaseDataMatName = 'CaseData-largeRepairableMission'; 
+CaseDataMatName = 'CaseData-repairableExample'; 
 
 %% Read component Data
-failDatTable = readtable([dataPath,'/ComponentFailureData.xlsx'], 'Range', 'G1:J14');
+failDatTable = readtable([dataPath,'/ComponentFailureData.xlsx'], 'Range', 'G1:J3');
+repairRateTable = readtable([dataPath,'/RepairRateData.xlsx'], 'Range', 'A1:B3');
+OtherMarkings = readmatrix([dataPath,'/OtherMarkings.xlsx'], 'Range', 'A2:A2');
 NPhases = 1;
 NSubnets = 0;
 
 %% Read A matrices, place IDs and transition IDs
 P=1;
-A.Ain{P} = readmatrix([dataPath,'/Ain.xlsx'],'Range','G3:AB20');
-A.Aout{P} = readmatrix([dataPath,'/Aout.xlsx'],'Range','G3:AB20');
-A.pIds{P} = readmatrix([dataPath,'/Ain.xlsx'],'Range','G2:AB2');
-A.tIds{P} = readmatrix([dataPath,'/Aout.xlsx'],'Range','F3:F20');
+A.Ain{P} = readmatrix([dataPath,'/Ain.xlsx'],'Range','G3:M10');
+A.Aout{P} = readmatrix([dataPath,'/Aout.xlsx'],'Range','G3:M10');
+A.pIds{P} = readmatrix([dataPath,'/Ain.xlsx'],'Range','G2:M2');
+A.tIds{P} = readmatrix([dataPath,'/Aout.xlsx'],'Range','F3:F10');
 
 %% Process A Matrices
 %Verify readin
@@ -58,9 +60,12 @@ if nerrors>0
     error(['Checks complete - ', num2str(nerrors), ' errors found'])
 else
     disp('Checks complete - read in successful')
-    save([CaseDataMatName,'.mat'],'failDatTable','A')
+    save([CaseDataMatName,'.mat'],'failDatTable','repairRateTable','OtherMarkings','A')
 end
 
 %% Save and Plot
 PlotAllNetsNoRun
+%layout(get(gca,'Children'),'auto') %options for better layout of places:
+%'auto','circle','force','layered','subspace','force3','subspace3'
+%default is layout(get(gca,'Children'),'layered','Direction','up')
 exportgraphics(gcf,[CaseDataMatName,'_phasePNs.png'])

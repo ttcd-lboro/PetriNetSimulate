@@ -11,19 +11,24 @@ load(myMatName,'A'); % read in A matrices for all phases with their associated (
 %close all
 figNo = 100;
 sz = size(A.Ain);
-if max(sz)>4
-    nCols = ceil((1+max(sz))/3);
-else
-    nCols = 2;
+multipleNets = (sz(1)*sz(2))>1;
+if multipleNets
+    if max(sz)>4
+        nCols = ceil((1+max(sz))/3);
+    else
+        nCols = 2;
+    end
+    nRows = ceil((1+max(sz))/nCols);
 end
-nRows = ceil((1+max(sz))/nCols);
-
 %% Fig 1: Locally indexed nets
 figure(figNo)
-T1=tiledlayout(nRows,nCols,'TileSpacing','compact','Padding','compact');
-
+if multipleNets
+    T1=tiledlayout(nRows,nCols,'TileSpacing','compact','Padding','compact');
+else
+    T1=gca;
+end
 for P=1:length(A.Ain)
-    nexttile
+    if multipleNets ; nexttile; end
     PlotNet(A.Ain{P},A.Aout{P},A.pIds{P},A.tIds{P},['Phase ',num2str(P)],figNo);
 end
 title(T1,'Phase Petri Nets')
@@ -48,15 +53,18 @@ if sum(contains(myMatFileVars,'AGlobal'))==1
     load(myMatName,'AGlobal')
     figNo=figNo+1;
     figure(figNo)
-    T3=tiledlayout(nRows,nCols,'TileSpacing','compact','Padding','compact');
-    
+    if multipleNets
+        T3=tiledlayout(nRows,nCols,'TileSpacing','compact','Padding','compact');
+    else
+        T3=gca;
+    end
     % Plot global Nets (subnets included automaticly)
     for P=1:length(AGlobal.A)
-        nexttile
+        if multipleNets; nexttile; end
         PlotNet(AGlobal.Ain{P},AGlobal.Aout{P},AGlobal.pIds,AGlobal.tIds,[' in Phase ',num2str(P)],figNo);
     end
     title(T3,'Global Petri Nets in Each Phase')
 end
 
 
-   
+

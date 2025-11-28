@@ -9,7 +9,7 @@ if toc(runTime)<MaxSimTime
     t_sys = 0; %system has time of 0
     ALeaving = sum(A.Ain{1}==-1); % List number of transitions leaving each place
     SysFailedPlaceId = A.pIds{1}(ALeaving == 0); % Phase failed place is place no transitions leaving it
-    if length(SysFailedPlaceId)>1;error('Multiple phase fail places detected');end
+    if length(SysFailedPlaceId)>1;error('Multiple phase fail places detected');elseif isempty(SysFailedPlaceId);error('No system failed place detected');end
 
     % Get new component failure times
     %componentWorkingPlaces = sum(A.Aout{1},1)==0;
@@ -17,7 +17,13 @@ if toc(runTime)<MaxSimTime
     if (opts.arbitraryFailureTimes)
         tInitialTransitions(1:Sim.NComponents) = 0.2*(1+rand(1,Sim.NComponents))/opts.failureRateMultiplier;
     else
-        tInitialTransitions(1:Sim.NComponents) = GenerateTimesFromDistribution(failDatTable,0)/opts.failureRateMultiplier; %
+        TTF = GenerateTimesFromDistribution(failDatTable,0)/opts.failureRateMultiplier; %
+        if length(TTF)~=Sim.NComponents
+            error('Failure rate data table length does not match number of components declared')
+        else
+            tInitialTransitions(1:Sim.NComponents) = TTF; 
+        end
+        [tInitialTransitions,maskForRepairRates] = AddRestorableTransitionTimes(tInitialTransitions,repairRateTable);
     end
 
     tRemainTransitions = tInitialTransitions;
@@ -30,6 +36,7 @@ if toc(runTime)<MaxSimTime
             if MGlobal(SysFailedPlaceId)>0 %Check if token in system failed place then fail the mission
                 PhaseOfFailure(runNo) = P;
                 SimOutcome(runNo) = 2; % 2 means system failed
+                tFail(runNo) = t_sys;
                 FailedComponents = FailedComponents + (MGlobal(1:Sim.NComponents)==0);
                 if opts.debugNetByPlotting
                     disp(['Sim ',num2str(runNo),': Phase failure registered in phase ',num2str(P)])
@@ -88,9 +95,12 @@ if toc(runTime)<MaxSimTime
         end
 
         T_Fire = T_Enabled.*(tRemainTransitions<=dt); % Fire just this/these transition(s)
-
+         
         %Update times
         tRemainTransitions = tRemainTransitions - dt.*T_Enabled; %Removes time past from all transitions that were enabled
+
+        tRemainTransitions(maskForRepairRates&T_Fire) = tInitialTransitions(maskForRepairRates&T_Fire); %Reset the times to repair if they just fired
+
         t_sys = t_sys + dt;
 
         %% Fire transitions

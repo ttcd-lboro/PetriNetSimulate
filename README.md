@@ -1,3 +1,7 @@
+#VERSION 3.1 2025
+1) Removed component nets and introudced Ain and Aout to allow bidirectional arcs to be drawn for repairable nets
+2) Added capability for repair times, which are reset, and initial markings read from file
+
 #VERSION 3.0 2025
 1) Improved randomness of results in parallel simulations
 2) New example for single-phase missions

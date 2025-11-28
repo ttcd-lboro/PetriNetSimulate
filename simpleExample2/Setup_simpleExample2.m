@@ -2,7 +2,7 @@ clearvars
 clc
 addpath('..')
 
-InputConnectivityMatName = 'InputConnectivity-SinglePhaseCase';
+CaseDataMatName = 'CaseData-simpleExample2';
 NComponents = 3;
 
 %% Define failure times
@@ -13,23 +13,32 @@ failDatTable.MTTF = [20,15,10]'; %any units valid as long as phase durations con
 failDatTable.EtaOrMu = [0,0,0]';
 failDatTable.BetaOrSigma = [0,0,0]'; 
 
-%% Define links between component net output places and phase net places input places for token copying
-%Phase 1    
-ComponentNetToPhaseNetIDs_allPhases{1}(:,1) = (4:6); % component net output places
-ComponentNetToPhaseNetIDs_allPhases{1}(:,2) = (10:12); % phase net input places (starts arbitrarily at 10 since closest round number after component net numbering (1:3)
-
-%% Define logic
+%% Define logic -
 %Define connections between places and transitions for the (single) phase
-A.pIds{1} = (10:13); %look at A-matrix for phase 1 and insert place IDs (starts arbitrarily at 10 since closest round number after component net numbering (1:3)
-A.tIds{1} = 4; %look at A-matrix for phase 1 and insert transitions IDs
-A.A{1} = [-1,-1,-1, 1];  %A-matrix for phase 1
+%For unphased missions, there is only 1 A matrix, and so use A.A{1} for all entries
+A.pIds{1} = [1:7]; %look at A-matrix for phase 1 and declare place IDs
+A.tIds{1} = [1:4]; %look at A-matrix for phase 1 and declare transition IDs
+A.Ain{1} = [-1,0,0,0,0,0,0;
+    0,-1,0,0,0,0,0;
+    0,0,-1,0,0,0,0;
+    0,0,0,-1,-1,-1, 0;];  %A-matrix for phase 1
+
+A.Aout{1} = [0,0,0,1,0,0,0;
+    0,0,0,0,1,0,0;
+    0,0,0,0,0,1,0;
+    0,0,0,0,0,0, 1;];  %A-matrix for phase 1
 
 ASubnet = [];% decalare there are no subnets
 
 %% Check programming validity
 
-for i = 1:length(A.A)
-    [nTrans,nPlaces] = size(A.A{i});
+for i = 1:length(A.Ain)
+    [nTrans,nPlaces] = size(A.Ain{i});
+    if any(A.Ain{i}>0)
+        error('Output arcs declared in Ain')
+    elseif any(A.Aout{i}<0)
+        error('Input arcs declared in Aout')
+    end
     if numel(A.pIds{i})~= nPlaces
         error('Number of Place IDs and number of places in A-matrix do not allign')
     elseif   numel(A.tIds{i})~= nTrans
@@ -39,6 +48,6 @@ end
 
 %% Save and Plot
 
-save(InputConnectivityMatName,'A','ASubnet','failDatTable','ComponentNetToPhaseNetIDs_allPhases')
+save(CaseDataMatName,'A','ASubnet','failDatTable')
 PlotAllNetsNoRun
-exportgraphics(gcf,[InputConnectivityMatName,'_phasePNs.png'])
+exportgraphics(gcf,[CaseDataMatName,'Petrinet.png'])
