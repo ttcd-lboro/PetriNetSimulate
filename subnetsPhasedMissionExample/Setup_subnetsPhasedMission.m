@@ -114,7 +114,7 @@ if nerrors>0
     error(['Checks complete - ', num2str(nerrors), ' errors found'])
 else
     disp('Checks complete - read in successful')
-    save([CaseDataMatName,'.mat'],'failDatTable','A','ComponentNetToPhaseNetIDs_allPhases','ComponentNetToPhaseNetIDs_allPhases','ASubnets')
+    save([CaseDataMatName,'.mat'],'failDatTable','A','ComponentNetToPhaseNetIDs_allPhases','ASubnets')
 end
 
 %% Save and Plot
