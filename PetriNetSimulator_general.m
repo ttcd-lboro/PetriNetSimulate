@@ -478,9 +478,10 @@ if (FinalSysFailProbability>0)
 
     %% time of failure
     figure
-    hist(tFail,20)
-    xlabel('Time of failure')
+    hist(tFail(SimOutcome==2),20)
+    xlabel('Time failure occured')
     ylabel('Occurances')
+    title('Times at which system failed')
     disp(['Median time of failure: ',num2str(median(tFail(SimOutcome==2)))])
 else
     disp('No failures in entire simulation time. Convergence not plotted')
@@ -505,6 +506,8 @@ AGlobal.pIds = 1:maxPId;
 AGlobalDims = [maxTId,maxPId];
 AGlobalZeros = zeros(AGlobalDims);
 
+
+
 %Put component A matrices into global format
 for P=1:NPhases
     AGlobal.Ain{P} = AGlobalZeros;
@@ -514,6 +517,17 @@ for P=1:NPhases
     AGlobal.Aout{P}(A.tIds{P},A.pIds{P}) = A.Aout{P};
 end
 
+if Sim.TokenCopyingBetweenNets
+    AGlobalComponentsIn = AGlobalZeros;
+    AGlobalComponentsOut = AGlobalZeros;
+    AGlobalComponentsIn((1:Sim.NComponents),(1:Sim.NComponents)) = -eye(Sim.NComponents); % Create the A Matrix which links all components together;
+    AGlobalComponentsOut((1:Sim.NComponents),(Sim.NComponents+1:2*Sim.NComponents)) = eye(Sim.NComponents); % Create the A Matrix which links all components together;
+     
+    for P=1:NPhases
+        AGlobal.Ain{P} = AGlobal.Ain{P} + AGlobalComponentsIn; %Put subnet failures into the global matrix
+        AGlobal.Aout{P} = AGlobal.Aout{P} + AGlobalComponentsOut; %Put subnet failures into the global matrix
+    end
+end
 % Add subnets if present
 if ~isempty(ASubnets)&&(iscell(ASubnets.Ain)&&iscell(ASubnets.Aout))
     AGlobalSubnet_in = AGlobalZeros;

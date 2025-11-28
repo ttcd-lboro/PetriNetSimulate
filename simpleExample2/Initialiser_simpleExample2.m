@@ -23,4 +23,4 @@ opts.progressBarUpdatePeriod = 1; % Progress monitor updates every 2 seconds (ex
 opts.saveAllVariables = false; % Save every simulation variable at end of simulation - normally only relevant variables are saved
 
 %% Run Code
-run PetriNetSimulator_repairNoCompNets
+run PetriNetSimulator_general
