@@ -11,6 +11,7 @@ Sim.MaxNSims = 2e3;%  Number of missions to simulate to ensure convergence
 Sim.MaxSimTimeHrs = 10/60; % Max simulation runtime before giving up
 Sim.NComponents = 13; % Number of all components in the system
 Sim.CaseDataMatName = 'CaseData-simpleExample3';
+Sim.TokenCopyingBetweenNets = false; % Whether or not to use token copying between sunets/component nets and main nets (required in these cases)
 
 %% Set Options
 opts.nProcs = 1; % Number of computer processors to use for simulation

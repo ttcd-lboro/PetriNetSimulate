@@ -304,7 +304,7 @@ else
     progCount = 0.1;
     for runNo = 1:(Sim.MaxNSims)
         rng('shuffle'); % Sets unique rand seed
-        run Algorithm4SerialRun_repairNoCompNets.m % run the same algorithm as above - kept in seperate file for simplicity
+        run Algorithm4SerialRun_general.m % run the same algorithm as above - kept in seperate file for simplicity
 
         progress = mod(runNo/Sim.MaxNSims,0.05);
         if (runNo/Sim.MaxNSims)>(progCount)

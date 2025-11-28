@@ -36,10 +36,10 @@ title(T1,'Phase Petri Nets')
 if sum(contains(myMatFileVars,'ASubnets'))==1
     figNo=figNo+1;
     figure(figNo)
-    T2=tiledlayout(nRows,nCols,'TileSpacing','compact','Padding','compact');
+    T2=tiledlayout('flow','TileSpacing','compact','Padding','compact');
     load(myMatName,'ASubnets'); % read in A matrices for all phases with their associated (glboal) place and transition IDs.
     if ~isempty(ASubnets)
-        for SId=1:length(ASubnets.A)
+        for SId=1:length(ASubnets.Ain)
             nexttile
             PlotNet(ASubnets.Ain{SId},ASubnets.Aout{SId},ASubnets.pIds{SId},ASubnets.tIds{SId},['Subnet ',num2str(SId)],figNo);
         end
