@@ -12,7 +12,7 @@ Sim.MaxSimTimeHrs = 10/60; % Max simulation runtime before giving up
 Sim.NComponents = 2; % Number of all components in the system
 Sim.CaseDataMatName = 'CaseData-repairableExample';
 Sim.TokenCopyingBetweenNets = false; % Whether or not to use token copying between sunets/component nets and main nets (required in these cases)
-Sim.CmptNetAlreadyInPhaseNet = false; % Whether component nets are declared in the A-matrix already - otherwise assume IDs are 1:NCommponents for working places and transitions
+Sim.CmptNetAlreadyInPhaseNet = false; % Whether component nets are declared in the A-matrix already - otherwise assume failed place IDS are NComponents+1:2NComponents.
 
 %% Set Options
 opts.nProcs = 1; % Number of computer processors to use for simulation
