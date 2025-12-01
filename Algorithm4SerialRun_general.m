@@ -15,16 +15,18 @@ if toc(runTime)<MaxSimTime
     %componentWorkingPlaces = sum(A.Aout{1},1)==0;
     tInitialTransitions = zeros(NGlobalTransitions,1);
     if (opts.arbitraryFailureTimes)
-        tInitialTransitions(1:Sim.NComponents) = 0.2*(1+rand(1,Sim.NComponents))/opts.failureRateMultiplier;
+        tInitialTransitions(failDatTable.TransID) = 0.2*(1+rand(1,Sim.NComponents))/opts.failureRateMultiplier;
     else
         TTF = GenerateTimesFromDistribution(failDatTable,0)/opts.failureRateMultiplier; %
         if length(TTF)~=Sim.NComponents
             error('Failure rate data table length does not match number of components declared')
         else
-            tInitialTransitions(1:Sim.NComponents) = TTF; 
+            tInitialTransitions(failDatTable.TransID) = TTF;
         end
-        [tInitialTransitions,maskForRepairRates] = AddRestorableTransitionTimes(tInitialTransitions,repairRateTable);
     end
+    [tInitialTransitions,maskForRepairRates] = AddRestorableTransitionTimes(tInitialTransitions,repairRateTable);
+    maskForRepairableCmpts = false(size(tInitialTransitions));
+    maskForRepairableCmpts(failDatTable.TransID(boolean(failDatTable.Repair))) = true;
 
     tRemainTransitions = tInitialTransitions;
 
@@ -37,7 +39,8 @@ if toc(runTime)<MaxSimTime
                 PhaseOfFailure(runNo) = P;
                 SimOutcome(runNo) = 2; % 2 means system failed
                 tFail(runNo) = t_sys;
-                FailedComponents = FailedComponents + (MGlobal(1:Sim.NComponents)==0);
+
+                FailedComponents = FailedComponents + boolean(MGlobal(cmptWorkingPlaces)==0);
                 if opts.debugNetByPlotting
                     disp(['Sim ',num2str(runNo),': Phase failure registered in phase ',num2str(P)])
                 end
@@ -74,7 +77,7 @@ if toc(runTime)<MaxSimTime
                 % Reinitialise Transfer Variables
                 T_Fire = T_Fire_0;
                 T_Enabled = false(NGlobalTransitions,1); % Gives logical index of which transitions are enabled
-                
+
                 if Sim.TokenCopyingBetweenNets
                     % Reinitialise insertion vector and component to main net links for this phase
                     ComponentOutputIDs_P = ComponentNetToPhaseNetIDs_allPhases{P}(:,1);
@@ -102,23 +105,25 @@ if toc(runTime)<MaxSimTime
             dt = 0;
         end
 
-        T_Fire = T_Enabled.*(tRemainTransitions<=dt); % Fire just this/these transition(s)
-         
+        T_Fire = T_Enabled&(tRemainTransitions<=dt); % Fire just this/these transition(s)
+
         %Update times
         tRemainTransitions = tRemainTransitions - dt.*T_Enabled; %Removes time past from all transitions that were enabled
-
         tRemainTransitions(maskForRepairRates&T_Fire) = tInitialTransitions(maskForRepairRates&T_Fire); %Reset the times to repair if they just fired
-
+        cmptIDtoResetFailTime_failDatID = intersect(find(maskForRepairableCmpts&T_Fire),failDatTable.TransID);
+        tRemainTransitions(maskForRepairableCmpts&T_Fire) = GenerateTimesFromDistribution(failDatTable(cmptIDtoResetFailTime_failDatID,:)) ; %Reset the component failure times if they're repairable and just fired
         t_sys = t_sys + dt;
 
         %% Fire transitions
         MGlobalPrevious = MGlobal; %Cache old MGlobal
         MGlobal = MGlobal + (AGlobalIn_P+AGlobalOut_P)' * T_Fire; %FIRE all transitions!
+
         if Sim.TokenCopyingBetweenNets
             InsertionVector(PhaseNetInputIDs_P) = MGlobal(ComponentOutputIDs_P); %
             MGlobal = MGlobal + InsertionVector.* AllowNetCopying; % Transfer tokens from component nets to phase net
             AllowNetCopying(InsertionVector~=0) = 0;  %After firing, reset insertion vector back to all zeros to prevent multiple tokens entering the phase PN from a single failed component net
         end
+        MGlobal = max(min(MGlobal,1),0); %fixes between 0 and 1
         if opts.debugNetByPlotting
             disp(['Phase ', num2str(P),' is affected by the failure of the following componenents: '])
         end
@@ -138,7 +143,7 @@ if toc(runTime)<MaxSimTime
 
         %% Plot it - live
         if opts.debugNetByPlotting
-            if P~=PPrevious %replot graph from scratch if its a new phase or hasnt been plotted yet
+            if P~=PPrevious||~exist('p1','var') %replot graph from scratch if its a new phase or hasnt been plotted yet
                 fNet = figure(50);
                 [p1,fNet,LocalTransitionIndices,keepNodes] = PlotNet(AGlobalIn_P,AGlobalOut_P,1:NGlobalPlaces,1:NGlobalTransitions,['Global Petri Net in Phase ',num2str(P)],fNet);
                 hold on
@@ -161,6 +166,8 @@ if toc(runTime)<MaxSimTime
             end
 
             % Pause, waiting for user to press any key to continue, then reset node colours after
+            disp(['t_sys = ',num2str(t_sys),'      dt = ',num2str(dt)])
+
             disp('Press any key to step through component failures and their effects: ')
             pause
 

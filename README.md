@@ -1,3 +1,8 @@
+#Version 3.2 2025
+1) Fixed component repair times which weren't being refreshed after repair
+2) Generalised net numbering so IDs no longer need to be from 1:Ncomponents and associated transitions likewise.
+Component marking is now defined manually in spreadsheet
+
 #VERSION 3.1 2025
 1) Removed component nets and introudced Ain and Aout to allow bidirectional arcs to be drawn for repairable nets
 2) Added capability for repair times, which are reset, and initial markings read from file

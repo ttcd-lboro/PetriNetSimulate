@@ -48,13 +48,14 @@
 %% Load Data
 % Define "Sim and opts structures in auxilliary file first (see exampleInitialiser.m)"
 warning off backtrace
-load([Sim.CaseDataMatName,'.mat'],'A','ASubnets','failDatTable','repairRateTable','OtherMarkings','ComponentNetToPhaseNetIDs_allPhases'); % read in A matrices for all phases with their associated (glboal) place and transition IDs.
+load([Sim.CaseDataMatName,'.mat'],'A','ASubnets','failDatTable','repairRateTable','InitMarking','ComponentNetToPhaseNetIDs_allPhases'); % read in A matrices for all phases with their associated (glboal) place and transition IDs.
 
 if ~exist('ASubnets','var')
     warning('No subnets found. Assuming none present')
     ASubnets = [];
 end
-if ~exist('OtherMarkings','var'); OtherMarkings=[];end
+if ~exist('ComponentNetToPhaseNetIDs_allPhases','var'); ComponentNetToPhaseNetIDs_allPhases = {};end
+if ~exist('InitMarking','var'); InitMarking=[];end
 if ~exist('repairRateTable','var'); repairRateTable=[];end
 if ~exist('failDatTable','var'); error('failDatTable not loaded'); end
 warning on backtrace
@@ -70,7 +71,7 @@ end
 
 diary([Sim.fullSimName,'/log.',Sim.fullSimName]); diary on
 
-[AGlobal,AGlobalDims] = AssembleAGlobal(A,ASubnets,Sim);
+[AGlobal,AGlobalDims] = AssembleAGlobal(A,ASubnets,Sim,failDatTable);
 save(Sim.CaseDataMatName,'AGlobal','-append');
 NGlobalTransitions = AGlobalDims(1);
 NGlobalPlaces = AGlobalDims(2);
@@ -80,12 +81,13 @@ MaxSimTime = Sim.MaxSimTimeHrs*60^2; % max sim time in units of failure data
 SysEndTime = sum(Sim.PhaseDurations);
 PhaseFailures = zeros(1,Sim.NPhases);
 MGlobal_0 = zeros(NGlobalPlaces,1); % Initalise the marking of the phase
-MGlobal_0(1:Sim.NComponents) = true;
-MGlobal_0(OtherMarkings) = true;
+MGlobal_0(InitMarking) = 1;
 
-small_ = SysEndTime/1e5;
+small_ = 1e-5;
 
-FailedComponents=zeros(Sim.NComponents,1);
+cmptWorkingPlaces = failDatTable.PID;
+
+FailedComponents=zeros(length(Sim.NComponents),1);
 SimOutcome = zeros(Sim.MaxNSims,1,'int8');
 PhaseOfFailure = zeros(Sim.MaxNSims,1,'int8');
 tFail = zeros(Sim.MaxNSims,1);
@@ -122,8 +124,8 @@ disp('Simulation running')
 if opts.showProgressBar
     opts.showProgressBar = opts.showProgressBar&&(opts.nProcs>1);
     if opts.nProcs>1
-    disp('Note: progress bar only considers the time towards completing the maximum number of simulations')
-    disp('Time shown by progress bar does not account for the maximum simulation time')
+        disp('Note: progress bar only considers the time towards completing the maximum number of simulations')
+        disp('Time shown by progress bar does not account for the maximum simulation time')
     end
 end
 warning('off','MATLAB:mir_warning_maybe_uninitialized_temporary')
@@ -134,7 +136,6 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
         ppm = ParforProgressbar(Sim.MaxNSims,'progressBarUpdatePeriod',opts.progressBarUpdatePeriod,'title','Total Simulation Progress'); %
     end
     parfor runNo = 1:Sim.MaxNSims
-
         %%% ALGORITHM START %%%
         rng('shuffle'); % Sets unique rand seed
         if toc(runTime)<MaxSimTime
@@ -152,16 +153,18 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
             %componentWorkingPlaces = sum(A.Aout{1},1)==0;
             tInitialTransitions = zeros(NGlobalTransitions,1);
             if (opts.arbitraryFailureTimes)
-                tInitialTransitions(1:Sim.NComponents) = 0.2*(1+rand(1,Sim.NComponents))/opts.failureRateMultiplier;
+                tInitialTransitions(failDatTable.TransID) = 0.2*(1+rand(1,Sim.NComponents))/opts.failureRateMultiplier;
             else
                 TTF = GenerateTimesFromDistribution(failDatTable,0)/opts.failureRateMultiplier; %
                 if length(TTF)~=Sim.NComponents
                     error('Failure rate data table length does not match number of components declared')
                 else
-                    tInitialTransitions(1:Sim.NComponents) = TTF;
+                    tInitialTransitions(failDatTable.TransID) = TTF;
                 end
-                [tInitialTransitions,maskForRepairRates] = AddRestorableTransitionTimes(tInitialTransitions,repairRateTable);
             end
+            [tInitialTransitions,maskForRepairRates] = AddRestorableTransitionTimes(tInitialTransitions,repairRateTable);
+            maskForRepairableCmpts = false(size(tInitialTransitions));
+            maskForRepairableCmpts(failDatTable.TransID(boolean(failDatTable.Repair))) = true;
 
             tRemainTransitions = tInitialTransitions;
 
@@ -174,7 +177,8 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
                         PhaseOfFailure(runNo) = P;
                         SimOutcome(runNo) = 2; % 2 means system failed
                         tFail(runNo) = t_sys;
-                        FailedComponents = FailedComponents + (MGlobal(1:Sim.NComponents)==0);
+
+                        FailedComponents = FailedComponents + boolean(MGlobal(cmptWorkingPlaces)==0);
                         if opts.debugNetByPlotting
                             disp(['Sim ',num2str(runNo),': Phase failure registered in phase ',num2str(P)])
                         end
@@ -239,23 +243,25 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
                     dt = 0;
                 end
 
-                T_Fire = T_Enabled.*(tRemainTransitions<=dt); % Fire just this/these transition(s)
+                T_Fire = T_Enabled&(tRemainTransitions<=dt); % Fire just this/these transition(s)
 
                 %Update times
                 tRemainTransitions = tRemainTransitions - dt.*T_Enabled; %Removes time past from all transitions that were enabled
-
                 tRemainTransitions(maskForRepairRates&T_Fire) = tInitialTransitions(maskForRepairRates&T_Fire); %Reset the times to repair if they just fired
-
+                cmptIDtoResetFailTime_failDatID = intersect(find(maskForRepairableCmpts&T_Fire),failDatTable.TransID);
+                tRemainTransitions(maskForRepairableCmpts&T_Fire) = GenerateTimesFromDistribution(failDatTable(cmptIDtoResetFailTime_failDatID,:)) ; %Reset the component failure times if they're repairable and just fired
                 t_sys = t_sys + dt;
 
                 %% Fire transitions
                 MGlobalPrevious = MGlobal; %Cache old MGlobal
                 MGlobal = MGlobal + (AGlobalIn_P+AGlobalOut_P)' * T_Fire; %FIRE all transitions!
+                
                 if Sim.TokenCopyingBetweenNets
                     InsertionVector(PhaseNetInputIDs_P) = MGlobal(ComponentOutputIDs_P); %
                     MGlobal = MGlobal + InsertionVector.* AllowNetCopying; % Transfer tokens from component nets to phase net
                     AllowNetCopying(InsertionVector~=0) = 0;  %After firing, reset insertion vector back to all zeros to prevent multiple tokens entering the phase PN from a single failed component net
                 end
+                MGlobal = max(min(MGlobal,1),0); %fixes between 0 and 1
                 if opts.debugNetByPlotting
                     disp(['Phase ', num2str(P),' is affected by the failure of the following componenents: '])
                 end
@@ -275,7 +281,7 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
 
                 %% Plot it - live
                 if opts.debugNetByPlotting
-                    if P~=PPrevious %replot graph from scratch if its a new phase or hasnt been plotted yet
+                    if P~=PPrevious||~exist('p1','var') %replot graph from scratch if its a new phase or hasnt been plotted yet
                         fNet = figure(50);
                         [p1,fNet,LocalTransitionIndices,keepNodes] = PlotNet(AGlobalIn_P,AGlobalOut_P,1:NGlobalPlaces,1:NGlobalTransitions,['Global Petri Net in Phase ',num2str(P)],fNet);
                         hold on
@@ -298,6 +304,8 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
                     end
 
                     % Pause, waiting for user to press any key to continue, then reset node colours after
+                    disp(['t_sys = ',num2str(t_sys),'      dt = ',num2str(dt)])
+
                     disp('Press any key to step through component failures and their effects: ')
                     pause
 
@@ -313,6 +321,7 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
         end
 
         %%% ALGORITHM END %%%
+
         if opts.showProgressBar
             ppm.increment();
         end
@@ -443,6 +452,10 @@ if (FinalSysFailProbability>0)
         Ni = plotPts(n);
         DevelopingFailureRate(n) = median(tFail(1:Ni));
     end
+    DevelopingFailureRate_std(n) = std(tFail);
+
+    [err_low,err_high] = getErroronMedian(tFail);
+
     FinalMedianTTF = DevelopingFailureRate(end);
     figure
     tl = tiledlayout(1,2,'TileSpacing','compact','padding','compact');
@@ -452,11 +465,12 @@ if (FinalSysFailProbability>0)
     xlabel('Iteration No')
     ylabel('Median TTF')
     yline(FinalMedianTTF,'k--')
-    yline(FinalMedianTTF*1.05,'r--')
-    yline(FinalMedianTTF*0.95,'r--')
-    legend('Prediction as Simulation Progressed','Final Value','5% Upper Confidence Bound','5% Lower Confidence Bound')
+    yline(FinalMedianTTF+err_high,'r--')
+    yline(FinalMedianTTF-err_low,'r--')
+    legend('Prediction as Simulation Progressed','Final Value','95% CI high','95% CI low')
     title('log scale')
     grid on
+    axis auto
 
     nexttile
     plot(plotPts,DevelopingFailureRate)
@@ -464,11 +478,12 @@ if (FinalSysFailProbability>0)
     xlabel('Iteration No')
     ylabel('Median TTF')
     yline(FinalMedianTTF,'k--')
-    yline(FinalMedianTTF*1.05,'r--')
-    yline(FinalMedianTTF*0.95,'r--')
-    legend('Prediction as Simulation Progressed','Final Value','5% Upper Confidence Bound','5% Lower Confidence Bound')
+    yline(FinalMedianTTF+err_high,'r--')
+    yline(FinalMedianTTF-err_low,'r--')
+    legend('Prediction as Simulation Progressed','Final Value','95% CI high','95% CI low')
     title('log scale')
     grid on
+    axis auto
 
     title(tl,'Convergence of System Median TTF')
     rsz = get(gcf,'Position');
@@ -494,7 +509,7 @@ end
 
 diary off
 
-function [AGlobal,AGlobalDims] = AssembleAGlobal(A,ASubnets,Sim)
+function [AGlobal,AGlobalDims] = AssembleAGlobal(A,ASubnets,Sim,failDatTable)
 
 disp("Assembling Global A-Matrix")
 NPhases = length(A.Ain);
@@ -518,11 +533,18 @@ for P=1:NPhases
 end
 
 if Sim.TokenCopyingBetweenNets
+    cmptWorkingPlaces = failDatTable.PID; %save
+    cmptFailurePlaces = cmptWorkingPlaces; %init
+
+    for n = 1:length(failDatTable.TransID)
+        cmptFailurePlaces(n) = find(AGlobal.Aout{1}(failDatTable.TransID(n),:));
+    end 
+    
     AGlobalComponentsIn = AGlobalZeros;
     AGlobalComponentsOut = AGlobalZeros;
-    AGlobalComponentsIn((1:Sim.NComponents),(1:Sim.NComponents)) = -eye(Sim.NComponents); % Create the A Matrix which links all components together;
-    AGlobalComponentsOut((1:Sim.NComponents),(Sim.NComponents+1:2*Sim.NComponents)) = eye(Sim.NComponents); % Create the A Matrix which links all components together;
-     
+    AGlobalComponentsIn(failDatTable.TransID,cmptWorkingPlaces) = -eye(Sim.NComponents); % Create the A Matrix which links all components together;
+    AGlobalComponentsOut(failDatTable.TransID,cmptWorkingPlaces) = eye(Sim.NComponents); % Create the A Matrix which links all components together;
+
     for P=1:NPhases
         AGlobal.Ain{P} = AGlobal.Ain{P} + AGlobalComponentsIn; %Put subnet failures into the global matrix
         AGlobal.Aout{P} = AGlobal.Aout{P} + AGlobalComponentsOut; %Put subnet failures into the global matrix
@@ -546,5 +568,29 @@ end
 disp("Global A-Matrix Completed")
 
 AGlobalDims = size(AGlobal.Ain{1});
+
+end
+
+function [err_low,err_high] = getErroronMedian(time_sample)
+T = sort(time_sample(:));        % ensure sorted column
+N = length(T);
+
+% --- Bootstrap ---
+B = 5000;              % number of bootstrap resamples
+bootMeds = zeros(B,1);
+
+for b = 1:B
+    sample = datasample(T, N);   % sample with replacement
+    bootMeds(b) = median(sample);
+end
+
+% --- Final outputs ---
+median_est = median(T);
+low95  = prctile(bootMeds, 2.5);     % 95% CI lower
+high95 = prctile(bootMeds, 97.5);    % 95% CI upper
+
+err_low  = median_est - low95;
+err_high = high95 - median_est;
+
 
 end
