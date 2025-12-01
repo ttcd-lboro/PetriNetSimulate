@@ -8,15 +8,16 @@ Sim.SimTitle = 'subnetsPhasedMission_fast';
 %Sim.PhaseDurations = [1,1,1,1,1]; % Duration of each phase specified in hours (if component failure data is also in hours)
 Sim.PhaseDurations = [3/60,1/60,1.7166,1/60,3/60]; % Duration of each phase specified in hours (if component failure data is also in hours)
 
-Sim.MaxNSims = 1e4;%  Number of missions to simulate
+Sim.MaxNSims = 1e2;%  Number of missions to simulate
 Sim.MaxSimTimeHrs = 0.2; % max sim time in hours
 Sim.NComponents = 40; % Number of all components in the system
 Sim.CaseDataMatName = 'CaseData-subnetsPhasedMission';
 Sim.TokenCopyingBetweenNets = true; % Whether or not to use token copying between sunets/component nets and main nets (required in these cases)
+Sim.CmptNetAlreadyInPhaseNet = false; % Whether component nets are declared in the A-matrix already - otherwise assume IDs are 1:NCommponents for working places and transitions
 
 %% Set Options
 opts.nProcs = 1; % Number of computer processors to use for simulation
-opts.debugNetByPlotting = false;
+opts.debugNetByPlotting = true;
 opts.arbitraryFailureTimes = false; %doesnt read the failure times matrix - just uses random times to allow debugging
 opts.failureRateMultiplier = 1000;% increases rate of failures arbitrarily to allow quicker debugging
 opts.showProgressBar = true; % only works for parallel cases

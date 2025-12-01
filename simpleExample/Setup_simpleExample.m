@@ -2,12 +2,15 @@ clearvars
 clc
 addpath('..')
 
-CaseDataMatName = 'CaseData-simpleExample2';
+CaseDataMatName = 'CaseData-simpleExample';
 NComponents = 3;
 
 %% Define failure times
 
 failDatTable = table('Size',[NComponents,4],'VariableTypes',{'int16','double','double','double'},'VariableNames',{'DataType','MTTF','EtaOrMu','BetaOrSigma'});
+failDatTable.PID = (1:NComponents)'; 
+failDatTable.TransID = (1:NComponents)'; 
+failDatTable.Repair = zeros(NComponents,0); 
 failDatTable.Datatype = [0,0,0]'; %Probability distribution types: 0 for exponential,1 for weibull, 2 for normal, 3 for no data - assume ttf=1e9s
 failDatTable.MTTF = [20,15,10]'; %any units valid as long as phase durations consistent in initialiser script (hours is typical)
 failDatTable.EtaOrMu = [0,0,0]';
@@ -30,6 +33,10 @@ A.Aout{1} = [0,0,0,1,0,0,0;
 
 ASubnet = [];% decalare there are no subnets
 
+%% Define initial marking
+InitMarking = false(size(A.Ain{1},1),1);
+InitMarking(1:NComponents) = true;
+
 %% Check programming validity
 
 for i = 1:length(A.Ain)
@@ -48,6 +55,6 @@ end
 
 %% Save and Plot
 
-save(CaseDataMatName,'A','ASubnet','failDatTable')
+save(CaseDataMatName,'A','ASubnet','failDatTable','InitMarking')
 PlotAllNetsNoRun
 exportgraphics(gcf,[CaseDataMatName,'Petrinet.png'])

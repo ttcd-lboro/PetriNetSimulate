@@ -6,9 +6,9 @@ dataPath = 'RawInputData';
 CaseDataMatName = 'CaseData-repairableExample'; 
 
 %% Read component Data
-failDatTable = readtable([dataPath,'/ComponentFailureData.xlsx'], 'Range', 'G1:J3');
+failDatTable = readtable([dataPath,'/ComponentFailureData.xlsx'], 'Range', 'G1:M3');
 repairRateTable = readtable([dataPath,'/RepairRateData.xlsx'], 'Range', 'A1:B3');
-OtherMarkings = readmatrix([dataPath,'/OtherMarkings.xlsx'], 'Range', 'A2:A2');
+InitMarking = readmatrix([dataPath,'/InitialMarking.xlsx'], 'Range', 'A2:A4');
 NPhases = 1;
 NSubnets = 0;
 
@@ -60,7 +60,7 @@ if nerrors>0
     error(['Checks complete - ', num2str(nerrors), ' errors found'])
 else
     disp('Checks complete - read in successful')
-    save([CaseDataMatName,'.mat'],'failDatTable','repairRateTable','OtherMarkings','A')
+    save([CaseDataMatName,'.mat'],'failDatTable','repairRateTable','InitMarking','A')
 end
 
 %% Save and Plot

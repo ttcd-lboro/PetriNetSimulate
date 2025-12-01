@@ -55,7 +55,7 @@ if ~exist('ASubnets','var')
     ASubnets = [];
 end
 if ~exist('ComponentNetToPhaseNetIDs_allPhases','var'); ComponentNetToPhaseNetIDs_allPhases = {};end
-if ~exist('InitMarking','var'); InitMarking=[];end
+if ~exist('InitMarking','var'); InitMarking=[]; error('No marking declared');end
 if ~exist('repairRateTable','var'); repairRateTable=[];end
 if ~exist('failDatTable','var'); error('failDatTable not loaded'); end
 warning on backtrace
@@ -72,6 +72,7 @@ end
 diary([Sim.fullSimName,'/log.',Sim.fullSimName]); diary on
 
 [AGlobal,AGlobalDims] = AssembleAGlobal(A,ASubnets,Sim,failDatTable);
+
 save(Sim.CaseDataMatName,'AGlobal','-append');
 NGlobalTransitions = AGlobalDims(1);
 NGlobalPlaces = AGlobalDims(2);
@@ -255,7 +256,7 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
                 %% Fire transitions
                 MGlobalPrevious = MGlobal; %Cache old MGlobal
                 MGlobal = MGlobal + (AGlobalIn_P+AGlobalOut_P)' * T_Fire; %FIRE all transitions!
-                
+
                 if Sim.TokenCopyingBetweenNets
                     InsertionVector(PhaseNetInputIDs_P) = MGlobal(ComponentOutputIDs_P); %
                     MGlobal = MGlobal + InsertionVector.* AllowNetCopying; % Transfer tokens from component nets to phase net
@@ -536,14 +537,19 @@ if Sim.TokenCopyingBetweenNets
     cmptWorkingPlaces = failDatTable.PID; %save
     cmptFailurePlaces = cmptWorkingPlaces; %init
 
-    for n = 1:length(failDatTable.TransID)
-        cmptFailurePlaces(n) = find(AGlobal.Aout{1}(failDatTable.TransID(n),:));
-    end 
-    
+    if Sim.CmptNetAlreadyInPhaseNet
+        for n = 1:length(failDatTable.TransID)
+            cmptFailurePlaces(n) = find(AGlobal.Aout{1}(failDatTable.TransID(n),:));
+        end
+    else
+        disp('Assuming component failed places are working places, as delcared in failDatTable, offset by NComponents')
+        cmptFailurePlaces = failDatTable.PID + length(failDatTable.PID);
+    end
+
     AGlobalComponentsIn = AGlobalZeros;
     AGlobalComponentsOut = AGlobalZeros;
     AGlobalComponentsIn(failDatTable.TransID,cmptWorkingPlaces) = -eye(Sim.NComponents); % Create the A Matrix which links all components together;
-    AGlobalComponentsOut(failDatTable.TransID,cmptWorkingPlaces) = eye(Sim.NComponents); % Create the A Matrix which links all components together;
+    AGlobalComponentsOut(failDatTable.TransID,cmptFailurePlaces) = eye(Sim.NComponents); % Create the A Matrix which links all components together;
 
     for P=1:NPhases
         AGlobal.Ain{P} = AGlobal.Ain{P} + AGlobalComponentsIn; %Put subnet failures into the global matrix

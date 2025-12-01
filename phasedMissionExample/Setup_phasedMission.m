@@ -3,17 +3,18 @@ clc
 addpath('..')
 
 dataPath = 'RawInputData';
-CaseDataMatName = 'CaseData-simpleExample3'; 
+CaseDataMatName = 'CaseData-phasedMission'; 
 
 %% Read component Data
-failDatTable = readtable([dataPath,'/ComponentFailureData.xlsx'], 'Range', 'G1:J14');
+failDatTable = readtable([dataPath,'/ComponentFailureData.xlsx'], 'Range', 'F1:L14');
+InitMarking = readmatrix([dataPath,'/InitialMarking.xlsx'], 'Range', 'A2:A12');
 NPhases = 1;
 NSubnets = 0;
 
 %% Read A matrices, place IDs and transition IDs
 P=1;
 A.Ain{P} = readmatrix([dataPath,'/Ain.xlsx'],'Range','G3:AB20');
-A.Aout{P} = readmatrix([dataPath,'/Aout.xlsx'],'Range','G3:AB20');
+A.Aout{P} = readmatrix([dataPath,'/Aout.xlsx'],'Range','G3:AB20')
 A.pIds{P} = readmatrix([dataPath,'/Ain.xlsx'],'Range','G2:AB2');
 A.tIds{P} = readmatrix([dataPath,'/Aout.xlsx'],'Range','F3:F20');
 
@@ -58,7 +59,7 @@ if nerrors>0
     error(['Checks complete - ', num2str(nerrors), ' errors found'])
 else
     disp('Checks complete - read in successful')
-    save([CaseDataMatName,'.mat'],'failDatTable','A')
+    save([CaseDataMatName,'.mat'],'failDatTable','A','InitMarking')
 end
 
 %% Save and Plot

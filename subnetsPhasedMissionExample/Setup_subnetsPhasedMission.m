@@ -6,9 +6,10 @@ dataPath = 'RawInputData';
 CaseDataMatName = 'CaseData-subnetsPhasedMission'; 
 
 %% Read component Data
-failDatTable = readtable([dataPath,'/ComponentFailureData.xlsx'], 'Range', 'G1:J41');
+failDatTable = readtable([dataPath,'/ComponentFailureData.xlsx'], 'Range', 'F1:L41');
 NPhases = 5;
 NSubnets = 2;
+NComponents = 40;
 
 %% Read A matrices, place IDs and transition IDs
 
@@ -62,6 +63,10 @@ ComponentNetToPhaseNetIDs_allPhasesRaw{5} = readmatrix([dataPath,'/Ain-Phase-5.x
 SubnetToPhaseNetIDsRaw{1} = readmatrix([dataPath,'/Ain-Subnet-1.xlsx'],'Range','T2:U100');
 SubnetToPhaseNetIDsRaw{2} = readmatrix([dataPath,'/Ain-Subnet-2.xlsx'],'Range','T2:U100');
 
+%% Define initial marking
+InitMarking = false(size(A.Ain{1},1),1);
+InitMarking(1:NComponents) = true;
+
 %% Process Links
 ComponentNetToPhaseNetIDs_allPhases = cell(size(ComponentNetToPhaseNetIDs_allPhasesRaw));
 SubnetToPhaseNetIDs = cell(size(SubnetToPhaseNetIDsRaw));
@@ -114,7 +119,7 @@ if nerrors>0
     error(['Checks complete - ', num2str(nerrors), ' errors found'])
 else
     disp('Checks complete - read in successful')
-    save([CaseDataMatName,'.mat'],'failDatTable','A','ComponentNetToPhaseNetIDs_allPhases','ASubnets')
+    save([CaseDataMatName,'.mat'],'failDatTable','A','ComponentNetToPhaseNetIDs_allPhases','ASubnets','InitMarking')
 end
 
 %% Save and Plot
