@@ -370,7 +370,7 @@ disp(['Across all simulations, there were a total of ',num2str(NComponentFailure
 figure
 ComponentFailLikelihoodOnSysFail = FailedComponents/NFailures;
 
-bar(ComponentFailLikelihoodOnSysFail)
+bar(string(cmptWorkingPlaces),ComponentFailLikelihoodOnSysFail)
 grid on
 title('Components which had failed upon system failure')
 ylabel(["Component failures at ", "failure time / system failures"])
