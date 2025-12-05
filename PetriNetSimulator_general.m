@@ -249,7 +249,8 @@ if opts.nProcs>1 && ~opts.debugNetByPlotting % paralllel processing
                 %Update times
                 tRemainTransitions = tRemainTransitions - dt.*T_Enabled; %Removes time past from all transitions that were enabled
                 tRemainTransitions(maskForRepairRates&T_Fire) = tInitialTransitions(maskForRepairRates&T_Fire); %Reset the times to repair if they just fired
-                cmptIDtoResetFailTime_failDatID = intersect(find(maskForRepairableCmpts&T_Fire),failDatTable.TransID);
+                cmptIDtoResetFailTime_transID = intersect(find(maskForRepairableCmpts&T_Fire),failDatTable.TransID);
+                cmptIDtoResetFailTime_failDatID = ismember(cmptIDtoResetFailTime_transID,failDatTable.TransID);
                 tRemainTransitions(maskForRepairableCmpts&T_Fire) = GenerateTimesFromDistribution(failDatTable(cmptIDtoResetFailTime_failDatID,:)) ; %Reset the component failure times if they're repairable and just fired
                 t_sys = t_sys + dt;
 
